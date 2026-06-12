@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="fr"><head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Compte Rendu Global Multi-Chantiers - V44 (iPad Auto-Save)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compte Rendu Global de Chantier &amp; Annexes - V43 (Auto-Save &amp; Enhanced Headers)</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -23,45 +23,6 @@
             color: var(--text);
             margin: 0;
             padding: 20px;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* Barre supérieure Multi-Chantier iOS */
-        .barre-multi-chantier {
-            background: #0f172a;
-            color: white;
-            padding: 12px 20px;
-            margin: -20px -20px 20px -20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        }
-        .select-chantier-input {
-            padding: 8px 12px;
-            font-size: 16px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background: white;
-            color: black;
-            font-weight: bold;
-        }
-        .btn-nouveau-chantier {
-            background: var(--success);
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .statut-sauvegarde {
-            font-size: 13px;
-            color: #94a3b8;
         }
 
         .container { max-width: 1600px; margin: 0 auto; }
@@ -74,101 +35,235 @@
             border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 15px;
+            font-size: 1rem;
+            color: #475569;
         }
 
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-
+        .tab-btn.active { background: var(--primary); color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
         .card {
             background: var(--card);
-            padding: 24px;
+            border: 2px solid #64748b;
             border-radius: 8px;
-            border: 1px solid var(--border);
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
 
-        h2, h3 { margin-top: 0; color: var(--primary); }
-
-        .grid-config {
+        .grid-header-2x2 {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 20px;
+            margin-bottom: 20px;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 15px;
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px; margin-bottom: 15px;
         }
 
-        label { font-weight: 600; font-size: 14px; color: #475569; }
-        
-        input, select, textarea {
-            padding: 10px;
+        .section-cadre {
             border: 1px solid var(--border);
+            border-top: 4px solid var(--primary);
             border-radius: 6px;
-            font-size: 16px; /* 16px empêche le zoom auto forcé sur iOS */
-            font-family: inherit;
-            box-sizing: border-box;
-            width: 100%;
+            padding: 15px;
+            background: #f8fafc;
         }
 
-        .btn-action {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-action:hover { background: var(--primary-hover); }
-        .btn-danger { background: var(--danger); }
-        .btn-warning { background: var(--warning); color: black; }
-
-        /* Module Plan Épingles */
-        #plan-container {
-            position: relative;
-            border: 2px dashed var(--border);
-            background: #f1f5f9;
-            min-height: 400px;
-            display: inline-block;
-            max-width: 100%;
-            overflow: auto;
-        }
-        #plan-img { display: block; max-width: 100%; height: auto; pointer-events: none; }
-        .pin {
-            position: absolute;
-            width: 24px; height: 24px;
-            background: var(--danger);
-            color: white;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px; font-weight: bold;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        .section-cadre h3 {
+            margin-top: 0; margin-bottom: 12px;
+            color: var(--primary); font-size: 1rem;
+            border-bottom: 1px solid var(--border); padding-bottom: 5px;
+            text-transform: uppercase;
         }
 
-        /* Styles d'impression */
+        .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+        .form-group-row { display: flex; gap: 10px; }
+        .form-group-row .form-group { flex: 1; margin-bottom: 0; }
+        
+        label { font-weight: 600; font-size: 0.85em; color: #475569; }
+        input, select, textarea {
+            padding: 8px 10px;
+            border: 1px solid var(--border); border-radius: 6px;
+            font-size: 0.95rem; background: #ffffff;
+        }
+
+        #cr-num {
+            font-size: 1.4rem !important; font-weight: 900 !important; color: var(--primary);
+        }
+
+        .grid-intermediaire-juridique {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 25px 0;
+        }
+
+        .banniere-prochain-rdv {
+            background: #ffedd5; border: 4px double #ea580c; border-radius: 8px;
+            padding: 25px; margin: 25px 0; text-align: center; color: #7c2d12;
+            box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.1);
+        }
+        .banniere-prochain-rdv h2 { 
+            margin: 0; font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 900;
+        }
+
+        .logo-container {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+            background: #ffffff; border: 1px dashed var(--border); padding: 5px; border-radius: 6px;
+        }
+        .logo-preview { max-height: 50px; max-width: 120px; object-fit: contain; display: none; }
+        .logo-placeholder { font-size: 0.8rem; color: #64748b; cursor: pointer; text-align: center; width: 100%; padding: 10px 0; }
+
+        .btn {
+            background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;
+        }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); padding: 5px 10px; font-size: 0.85em; color:white; border-radius:4px; border:none; cursor:pointer;}
+        .btn-edit { background: var(--edit); padding: 5px 10px; font-size: 0.85em; color: white; border-radius: 4px; border: none; cursor: pointer; font-weight: bold;}
+
+        table { width: 100%; border-collapse: collapse; background: white; margin-bottom: 25px; }
+        th, td { border: 1px solid var(--border); padding: 10px; text-align: left; font-size: 0.95rem; }
+        th { background: #1e3a8a; font-size: 0.9em; color: white; font-weight: bold; }
+
+        .presence-cell { text-align: center; vertical-align: middle; background: #fafafa; }
+        .check-item { width: 20px; height: 20px; cursor: pointer; transform: scale(1.2); }
+        .input-absent { width: 55px; padding: 5px; text-align: center; font-weight: bold; border: 1px solid var(--border); border-radius: 4px; }
+
+        .lot-block-remarque { background: #ffffff; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 4px; margin-bottom: 15px; padding: 12px; }
+        .lot-remarque-title { font-weight: bold; color: var(--primary); margin-bottom: 8px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; font-size: 1.1rem; }
+
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; display: inline-block; }
+        .badge-Urgent { background: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; }
+        .badge-Moyen { background: #fef3c7; color: var(--warning); border: 1px solid #fcd34d; }
+        .badge-Faible { background: #d1fae5; color: var(--success); border: 1px solid #6ee7b7; }
+        
+        .obs-img-preview { max-width: 100px; max-height: 70px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); cursor: pointer; margin-top: 5px; display: block; }
+        .annexe-item { page-break-inside: avoid; break-inside: avoid; margin-bottom: 30px; border-bottom: 1px dashed var(--border); padding-bottom: 20px; }
+        .annexe-img { max-width: 100%; max-height: 450px; object-fit: contain; border: 2px solid var(--border); border-radius: 6px; display: block; margin: 15px 0; }
+        .ref-tag { background: #0f172a; color: white; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 0.9em; }
+
+        .plan-workspace { display: flex; gap: 20px; height: 650px; }
+        .plan-sidebar { width: 260px; background: #f1f5f9; padding: 15px; border-radius: 6px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+        .plan-viewer-container { flex: 1; position: relative; background: #334155; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+        .plan-viewport { width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: grab; position: relative; }
+        #plan-render-wrapper { transform-origin: center center; position: relative; display: inline-block; }
+        #plan-img-target, #plan-canvas-target { max-width: 100%; max-height: 100%; display: block; user-select: none; }
+        .plan-pin { position: absolute; width: 24px; height: 24px; background: var(--danger); color: white; border-radius: 50%; border: 2px solid white; font-weight: bold; font-size: 11px; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); box-shadow: 0 2px 5px rgba(0,0,0,0.4); z-index: 50; }
+        .pagination-controls { display: flex; align-items: center; justify-content: space-between; background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid var(--border); }
+        .zoom-controls { display: flex; gap: 5px; }
+        .zoom-controls button { flex: 1; padding: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; border: 1px solid var(--border); border-radius: 4px; background: white; }
+        .zoom-controls button:hover { background: #f1f5f9; }
+
+        .no-print { display: block; }
+        .print-only { display: none; }
+
+        #autosave-toast {
+            position: fixed; bottom: 20px; right: 20px; background: #0f172a; color: #f8fafc;
+            padding: 10px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 500;
+            display: flex; align-items: center; gap: 8px; opacity: 0; transition: opacity 0.3s ease;
+            z-index: 10000; pointer-events: none;
+        }
+
         @media print {
-            body { background: white; padding: 0; }
-            .barre-multi-chantier, .tabs, .no-print, button, input[type="file"] { display: none !important; }
-            .card { border: none; box-shadow: none; padding: 0; margin-bottom: 30px; page-break-inside: avoid; }
-            .tab-content { display: block !important; }
-            input, select, textarea { border: none; padding: 0; background: transparent; resize: none; }
+            body {
+                background: white !important; color: #0f172a !important;
+                padding: 0 !important; margin: 0 !important; font-size: 10pt !important;
+                -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+            }
+            @page {
+                size: portrait; margin: 12mm;
+            }
+            .no-print, .tabs, #tab-entreprises, #tab-plans, #secteur-saisie, .btn-danger {
+                display: none !important;
+            }
+            .print-only { display: block !important; }
+            #tab-cr { display: block !important; }
+            
+            .card, .lot-block-remarque, .section-cadre, .annexe-item {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            
+            h2 {
+                color: #1e3a8a !important; font-size: 1.25rem !important;
+                border-bottom: 2px solid #1e3a8a !important; padding-bottom: 6px !important;
+                margin-top: 0 !important; margin-bottom: 18px !important;
+                text-transform: uppercase; letter-spacing: 0.5px;
+            }
+
+            input, select, textarea {
+                border: none !important; padding: 0 !important; background: transparent !important;
+                font-weight: bold !important; color: #0f172a !important; appearance: none;
+            }
+
+            table {
+                width: 100% !important; border-collapse: collapse !important; margin-bottom: 15px !important;
+                page-break-inside: auto !important;
+            }
+            tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+            th {
+                background: #1e3a8a !important; color: white !important; font-weight: bold !important;
+                text-transform: uppercase; font-size: 0.8rem !important; padding: 8px !important;
+                border: 1px solid #1e3a8a !important;
+            }
+            td {
+                border: 1px solid #cbd5e1 !important; padding: 8px !important; background: #ffffff !important;
+            }
+            tr:nth-child(even) td { background: #f8fafc !important; }
+
+            .print-checkbox {
+                font-size: 1.5rem !important; font-family: monospace !important; font-weight: bold !important; color: #1e3a8a !important;
+            }
+
+            .grid-intermediaire-juridique {
+                display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 20px !important; margin: 20px 0 !important;
+            }
+
+            .grid-header-2x2 {
+                display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 24px !important; margin-bottom: 30px !important;
+            }
+
+            .section-cadre {
+                border: 2px solid #1e3a8a !important; border-top: 8px solid #1e3a8a !important;
+                background: #f8fafc !important; padding: 20px !important; border-radius: 8px !important;
+                box-shadow: 2px 2px 5px rgba(0,0,0,0.05) !important;
+            }
+
+            .section-cadre h3 {
+                color: #1e3a8a !important; font-size: 1.2rem !important; border-bottom: 2px dashed #1e3a8a !important;
+                padding-bottom: 8px !important; margin-bottom: 15px !important; font-weight: 800 !important;
+            }
+
+            .section-cadre input { font-size: 1.1rem !important; }
+            .section-cadre label { font-size: 0.9rem !important; color: #334155 !important; font-weight: 700 !important; }
+
+            .section-cadre[style*="border-top-color"] {
+                border-color: #b45309 !important; border-top: 8px solid #ea580c !important; background: #fffdf5 !important;
+            }
+            .section-cadre[style*="border-top-color"] h3 {
+                color: #ea580c !important; border-bottom-color: #b45309 !important;
+            }
+
+            .banniere-prochain-rdv {
+                background: #ffedd5 !important; border: 4px double #ea580c !important; padding: 22px !important; margin: 20px 0 !important; border-radius: 8px !important;
+            }
+            .banniere-prochain-rdv h2 {
+                color: #7c2d12 !important; font-size: 1.6rem !important; border-bottom: none !important; margin: 0 !important; padding: 0 !important;
+            }
+
+            .print-page-1, .print-page-2, .print-page-3, .print-page-4 { 
+                page-break-before: auto !important; 
+                break-before: auto !important;
+            }
+            
+            .annexe-img { max-height: 350px !important; margin: 10px auto !important; }
         }
     </style>
     
@@ -178,518 +273,629 @@
 </head>
 <body>
 
-<div class="barre-multi-chantier">
-    <div style="display: flex; align-items: center; gap: 15px;">
-        <label style="color: white; font-size: 16px; margin: 0;">🏗️ Chantier Actuel :</label>
-        <select id="global-select-chantier" class="select-chantier-input" onchange="changerDeChantierActuel()"></select>
-        <button class="btn-nouveau-chantier" onclick="creerUnNouveauChantier()">➕ Nouveau Projet</button>
+<div id="barre-multi-chantier" class="no-print" style="background:#0f172a; color:white; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; font-family:sans-serif; border-bottom:2px solid #1e293b;">
+    <div style="display:flex; align-items:center; gap:15px;">
+        <label style="color:white; font-size:16px; font-weight:bold; margin:0;">🏗️ Projet Actuel :</label>
+        <select id="global-select-chantier" style="padding:8px 12px; font-size:16px; border-radius:6px; background:white; color:black; font-weight:bold; width:auto;" onchange="changerDeChantierActuel()"></select>
+        <button style="background:#10b981; color:white; border:none; padding:8px 14px; border-radius:6px; font-weight:bold; font-size:14px; cursor:pointer;" onclick="creerUnNouveauChantier()">➕ Nouveau Projet</button>
     </div>
-    <div class="statut-sauvegarde" id="statut-liaison-stockage">✅ Sauvegarde automatique active</div>
+    <div id="statut-sauvegarde-multi" style="font-size:13px; color:#10b981; font-weight:bold;">✅ Base de données locale synchronisée</div>
 </div>
+<div id="autosave-toast" style="opacity: 0;">💾 Données sauvegardées...</div>
 
 <div class="container">
-    <div class="tabs no-print">
-        <button class="tab-btn active" onclick="switchTab('config')">⚙️ 1. Configuration &amp; Lots</button>
-        <button class="tab-btn" onclick="switchTab('plan')">🗺️ 2. Plans &amp; Repères</button>
-        <button class="tab-btn" onclick="switchTab('cr')" onclick="renderTout()">📝 3. Compte Rendu Final</button>
+
+    <div class="tabs no-print" style="margin-top:20px;">
+        <button class="tab-btn active" id="btn-tab-entreprises" onclick="switchTab('tab-entreprises')">🏢 1. Configuration des Lots</button>
+        <button class="tab-btn" id="btn-tab-plans" onclick="switchTab('tab-plans')">🗺️ 2. Visionneuse de Plans</button>
+        <button class="tab-btn" id="btn-tab-cr" onclick="switchTab('tab-cr')" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;">📝 3. Compte Rendu de Chantier</button>
     </div>
 
-    <div id="tab-config" class="tab-content active">
-        <div class="card">
-            <h2>En-tête Général du Rapport</h2>
-            <div class="grid-config">
-                <div class="form-group">
-                    <label>Nom du Projet / Chantier</label>
-                    <input type="text" id="cfg-projet" placeholder="Ex: Rénovation Résidence Olivier" oninput="declencherSauvegardeAutomatique()">
+    <div id="tab-entreprises" class="tab-content active">
+        <div id="form-bloc-saisie" class="no-print">
+            <div class="card" style="border-left: 4px solid var(--warning); background: #fffbeb;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="color: #b45309; margin-top: 0; margin-bottom: 0; border-bottom:none;">🗓️ Dates Stratégiques du Projet</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn" style="background: #0284c7;" onclick="sauvegarderEtEcraserFichier()">💾 Enregistrer (Écraser le fichier)</button>
+                        <button class="btn btn-danger" style="background:#475569;" onclick="reinitialiserToutDonnees()">🔄 Réinitialiser l'application</button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Numéro de Compte Rendu</label>
-                    <input type="text" id="cfg-cr-num" placeholder="Ex: CR-01" oninput="declencherSauvegardeAutomatique()">
+                <div class="grid-header-2x2" style="margin-top: 20px; margin-bottom: 0;">
+                    <div class="form-group">
+                        <label style="color: #b45309;">✍️ Date de Signature des Marchés *</label>
+                        <input type="date" id="proj-date-marche" value="2026-04-15" onchange="declencheChangementFormulaire()">
+                    </div>
+                    <div class="form-group">
+                        <label style="color: #b45309;">🔑 Date de Réception de Chantier (Prévue) *</label>
+                        <input type="date" id="proj-date-reception" value="2026-08-30" onchange="declencheChangementFormulaire()">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Date de la Visite</label>
-                    <input type="date" id="cfg-date" oninput="declencherSauvegardeAutomatique()">
-                </div>
-                <div class="form-group">
-                    <label>Météo</label>
-                    <input type="text" id="cfg-meteo" placeholder="Ex: Beau temps, 18°C" oninput="declencherSauvegardeAutomatique()">
-                </div>
+            </div>
+
+            <div class="card">
+                <h2 id="form-entreprise-title" style="border-bottom:none;">Ajouter un Lot / Une Entreprise</h2>
+                <form id="form-entreprise" onsubmit="sauvegarderEntreprise(event)">
+                    <input type="hidden" id="ent-index" value="">
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Numéro de Lot *</label>
+                            <input type="text" id="ent-lot-num" placeholder="ex: 01" required="">
+                        </div>
+                        <div class="form-group">
+                            <label>Corps d'état *</label>
+                            <input type="text" id="ent-metier" placeholder="ex: Gros-Œuvre" required="">
+                        </div>
+                        <div class="form-group">
+                            <label>Nom de l'entreprise *</label>
+                            <input type="text" id="ent-nom" placeholder="ex: BatiFrance" required="">
+                        </div>
+                    </div>
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Représentant</label>
+                            <input type="text" id="ent-rep" placeholder="ex: M. Legrand">
+                        </div>
+                        <div class="form-group">
+                            <label>Téléphone</label>
+                            <input type="tel" id="ent-tel" placeholder="06...">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="ent-mail" placeholder="contact@...">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px; background: #f0fdf4; padding: 15px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                        <h3 style="margin-top: 0; color: #166534; font-size: 1rem; border:none; text-transform:none;">📅 Périodes d'interventions prévues</h3>
+                        <div id="container-periodes-ui"></div>
+                        <div class="period-row-ui" style="display:flex; gap:10px; background: #e6fced; padding:10px; border-radius:4px; flex-wrap: wrap;">
+                            <div class="form-group" style="flex: 2; min-width: 200px;">
+                                <label style="color: #166534;">✍️ Intitulé de la période</label>
+                                <input type="text" id="tmp-period-label" placeholder="ex: Phase 1 : Gros-Œuvre principal">
+                            </div>
+                            <div class="form-group" style="flex: 1; min-width: 130px;">
+                                <label style="color: #166534;">🚀 Début</label>
+                                <input type="date" id="tmp-period-start">
+                            </div>
+                            <div class="form-group" style="flex: 1; min-width: 130px;">
+                                <label style="color: #166534;">🏁 Fin</label>
+                                <input type="date" id="tmp-period-end">
+                            </div>
+                            <div class="form-group" style="flex: 0.6; min-width: 80px; align-items: center; justify-content: center;">
+                                <label style="color: #166534;">✔️ Fait</label>
+                                <input type="checkbox" id="tmp-period-done" style="width:20px; height:20px; cursor:pointer;">
+                            </div>
+                            <button type="button" class="btn btn-success" style="align-self: flex-end; padding: 10px 15px;" onclick="ajouterPeriodeMemoire()">➕ Ajouter phase</button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="submit" id="btn-soumettre-ent" class="btn btn-success">Enregistrer le lot complet</button>
+                        <button type="button" id="btn-annuler-ent" class="btn" style="background: rgb(100, 116, 139); display: none;" onclick="annulerEditionEntreprise()">Annuler</button>
+                    </div>
+                </form>
             </div>
         </div>
 
-        <div class="card">
-            <h2>Gestion des Lots &amp; Entreprises</h2>
-            <div class="grid-config" style="grid-template-columns: 2fr 1fr 1fr;">
-                <input type="text" id="lot-nom" placeholder="Nom du lot / Entreprise (Ex: Menuiserie - Durand SAS)">
-                <select id="lot-statut">
-                    <option value="Conforme">✅ Conforme</option>
-                    <option value="En cours">⏳ En cours</option>
-                    <option value="Retard">🚨 Retard</option>
-                    <option value="Non commencé">⚪ Non commencé</option>
-                </select>
-                <button class="btn-action" onclick="ajouterLot()">Ajouter le Lot</button>
+        <div class="no-print">
+            <div class="card">
+                <h2 style="color: var(--primary); margin-top: 0; margin-bottom: 10px; border:none;">📋 Vue d'ensemble des Lots</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;">Lot</th>
+                            <th style="width: 22%;">Corps d'état</th>
+                            <th style="width: 25%;">Entreprise</th>
+                            <th style="width: 35%;">Phases prévues &amp; État de réalisation</th>
+                            <th style="width: 10%; text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-config-entreprises-body">
+                        </tbody>
+                </table>
             </div>
-            <div id="lots-liste-container" style="margin-top: 20px;"></div>
         </div>
     </div>
 
-    <div id="tab-plan" class="tab-content">
-        <div class="card no-print">
-            <h2>Chargement du Plan (PDF ou Image)</h2>
-            <input type="file" id="plan-file-input" accept="image/*,application/pdf" onchange="gererChargementFichierPlan()">
-            <p style="font-size: 13px; color: #64748b;">Touchez le plan pour ajouter un repère numéroté à l'endroit précis de l'anomalie.</p>
-        </div>
-
-        <div class="card" style="text-align: center;">
-            <div id="plan-container" onclick="ajouterEpinglesSurPlan(event)">
-                <img id="plan-img" src="" alt="Aucun plan chargé" style="display:none;">
-                <canvas id="pdf-canvas" style="display:none; max-width:100%;"></canvas>
-            </div>
-        </div>
-
-        <div class="card no-print">
-            <h3>Saisie d'une Remarque liée au Plan</h3>
-            <div class="grid-config">
-                <div class="form-group">
-                    <label>Associer à un Lot</label>
-                    <select id="obs-lot-select"></select>
+    <div id="tab-plans" class="tab-content">
+        <div class="card">
+            <h2 style="margin-top:0; color:var(--primary); border:none;">🗺️ Espace Plan (PDF &amp; Images) &amp; Annotations</h2>
+            <div class="plan-workspace">
+                <div class="plan-sidebar">
+                    <div class="form-group">
+                        <label>📂 Charger un plan</label>
+                        <input type="file" id="plan-file-loader" accept="application/pdf, image/*" onchange="chargerPlanFichier(event)">
+                    </div>
+                    <div class="pagination-controls" id="pdf-navigation-ui" style="display:none;">
+                        <button class="btn" style="padding: 5px 10px; background:#475569;" onclick="changerPagePDF(-1)">◀</button>
+                        <span id="pdf-page-info" style="font-size:0.85rem; font-weight:bold;">Page 1 / 1</span>
+                        <button class="btn" style="padding: 5px 10px; background:#475569;" onclick="changerPagePDF(1)">▶</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>🔍 Zoom Plan</label>
+                        <div class="zoom-controls">
+                            <button onclick="ajusterZoomManuel(0.25)">➕ In</button>
+                            <button onclick="ajusterZoomManuel(-0.25)">➖ Out</button>
+                            <button onclick="reinitialiserPositionPlan()">🔄 Reset</button>
+                        </div>
+                    </div>
+                    
+                    <hr style="border:0; border-top:1px solid var(--border); margin:5px 0;">
+                    <button id="btn-toggle-pin-mode" class="btn" style="width:100%; background:#475569;" onclick="togglePinMode()">📍 Mode Épingler : OFF</button>
+                    
+                    <button class="btn" style="width:100%; background:#0284c7;" onclick="capturerPlanDeTravail()">📸 Capturer la zone</button>
+                    
+                    <button class="btn" style="width:100%; background:#ef4444; padding:6px 10px;" onclick="effacerToutesLesEpingles()">🗑️ Effacer les repères</button>
                 </div>
-                <div class="form-group">
-                    <label>Localisation précise</label>
-                    <input type="text" id="obs-loc" placeholder="Ex: Chambre 2, RDC">
-                </div>
-                <div class="form-group">
-                    <label>Degré d'Urgence</label>
-                    <select id="obs-urgence">
-                        <option value="Faible">🟢 Faible</option>
-                        <option value="Moyen">🟡 Moyen</option>
-                        <option value="Critique">🔴 Critique</option>
-                    </select>
+                <div class="plan-viewer-container">
+                    <div class="plan-viewport" id="plan-viewport-area" style="cursor: grab;">
+                        <div id="plan-render-wrapper" style="transform: translate(0px, 0px) scale(1);">
+                            <img id="plan-img-target" src="data:image/svg+xml;utf8,&lt;svg xmlns='http://www.w3.org/2000/svg' width='800' height='500'&gt;&lt;rect width='100%' height='100%' fill='%23334155'/&gt;&lt;text x='50%' y='50%' font-family='sans-serif' font-size='18' fill='%2394a3b8' text-anchor='middle'&gt;Aucun plan chargé&lt;/text&gt;&lt;/svg&gt;">
+                            <canvas id="plan-canvas-target" style="display:none;"></canvas>
+                            <div id="pins-container"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label>Description du constat</label>
-                <textarea id="obs-desc" rows="3" placeholder="Description de l'anomalie ou remarque..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>Photo d'illustration (Optionnel)</label>
-                <input type="file" id="obs-img-input" accept="image/*" onchange="convertirPhotoRemarqueEnBase64(event)">
-                <span id="obs-img-status" style="font-size:12px; color:var(--success);"></span>
-            </div>
-            <button class="btn-action" onclick="validerEtEnregistrerRemarque()">Enregistrer la Remarque</button>
         </div>
     </div>
 
     <div id="tab-cr" class="tab-content">
-        <div class="card no-print" style="display: flex; gap: 10px;">
-            <button class="btn-action" onclick="window.print()">🖨️ Imprimer ou Générer le PDF</button>
-            <button class="btn-action btn-danger" onclick="reinitialiserChantierActuel()">🧹 Réinitialiser ce chantier</button>
-        </div>
-
-        <div class="card" id="document-rendu-final">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px;">
-                <div>
-                    <h1 id="print-titre" style="margin:0; color:var(--primary);">COMPTE RENDU DE CHANTIER</h1>
-                    <h3 id="print-sub" style="margin:5px 0 0 0; color:#475569;"></h3>
-                </div>
-                <div style="text-align: right; font-size: 14px;">
-                    <p style="margin:2px 0;"><strong id="print-date"></strong></p>
-                    <p style="margin:2px 0;"><strong id="print-meteo"></strong></p>
+        
+        <div class="print-page-1">
+            <div class="card" style="border:none; padding:0; margin-bottom:15px;">
+                <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
+                    <h1 style="margin:0; color: var(--primary); font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px;">COMPTE RENDU DE CHANTIER</h1>
+                    <button class="btn btn-success no-print" onclick="window.print()">🖨️ Imprimer / Exporter en PDF</button>
                 </div>
             </div>
-
-            <h3 style="margin-top:25px;">1. État d'avancement des Lots</h3>
-            <table style="width:100%; border-collapse: collapse; margin-bottom: 25px;">
-                <thead>
-                    <tr style="background: var(--primary); color: white;">
-                        <th style="padding:10px; text-align:left; border:1px solid var(--border);">Lot / Entreprise</th>
-                        <th style="padding:10px; text-align:center; border:1px solid var(--border); width:150px;">Statut</th>
-                    </tr>
-                </thead>
-                <tbody id="table-print-lots"></tbody>
-            </table>
-
-            <h3>2. Tableau des Observations &amp; Remarques</h3>
-            <table style="width:100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="background: #334155; color: white;">
-                        <th style="padding:10px; text-align:center; border:1px solid var(--border); width:50px;">N°</th>
-                        <th style="padding:10px; text-align:left; border:1px solid var(--border); width:150px;">Lot</th>
-                        <th style="padding:10px; text-align:left; border:1px solid var(--border); width:150px;">Localisation</th>
-                        <th style="padding:10px; text-align:left; border:1px solid var(--border);">Description</th>
-                        <th style="padding:10px; text-align:center; border:1px solid var(--border); width:80px;">Urgence</th>
-                        <th style="padding:10px; text-align:center; border:1px solid var(--border); width:120px;">Visuel</th>
-                    </tr>
-                </thead>
-                <tbody id="table-print-remarques"></tbody>
-            </table>
+            
+            <div class="grid-header-2x2">
+                <div class="section-cadre">
+                    <h3>📐 Maître d'Œuvre</h3>
+                    <div class="logo-container">
+                        <span class="logo-placeholder" id="logo-prompt" onclick="document.getElementById('logo-file').click()">🖼️ Insérer logo</span>
+                        <img id="logo-img" class="logo-preview" alt="Logo">
+                        <input type="file" id="logo-file" accept="image/*" style="display:none;" onchange="chargerLogo(event)">
+                    </div>
+                    <div class="form-group"><input type="text" id="moe-nom" value="Cabinet d'Architecture Horizon" style="font-weight:bold; color:var(--primary); width:100%;" oninput="sauvegardeChampsLibres()"></div>
+                    <div class="form-group-row"><input type="text" id="moe-tel" value="Tél: 02.40.00.11.22" oninput="sauvegardeChampsLibres()"><input type="text" id="moe-mail" value="Email: contact@horizon-archi.fr" oninput="sauvegardeChampsLibres()"></div>
+                </div>
+                <div class="section-cadre">
+                    <h3>👤 Maître d'Ouvrage</h3>
+                    <div class="form-group"><label>Nom du / des Clients</label><input type="text" id="cr-client-nom" value="M. et Mme Robert Martin" style="font-weight: bold; width:100%;" oninput="sauvegardeChampsLibres()"></div>
+                    <div class="form-group"><label>Adresse de facturation</label><input type="text" id="cr-client-adresse" value="14 Avenue de la République, 75011 Paris" style="width:100%;" oninput="sauvegardeChampsLibres()"></div>
+                </div>
+                <div class="section-cadre">
+                    <h3>🏗️ Le Chantier</h3>
+                    <div class="form-group"><label>Intitulé du Chantier</label><input type="text" id="cr-nom-chantier" value="Construction d'une Maison Individuelle" style="font-weight: bold; color: #0369a1; width:100%;" oninput="sauvegardeChampsLibres()"></div>
+                    <div class="form-group"><label>Adresse d'exécution</label><input type="text" id="cr-adresse-chantier" value="Lieu-dit Le Grand Clos, 44000 Nantes" style="width:100%;" oninput="sauvegardeChampsLibres()"></div>
+                </div>
+                <div class="section-cadre" style="background: #fffdf5; border-top-color: var(--warning);">
+                    <h3>📅 Réunions &amp; RDV</h3>
+                    <div class="form-group-row">
+                        <div class="form-group" style="flex: 0.5;"><label>CR N°</label><input type="text" id="cr-num" value="12" oninput="sauvegardeChampsLibres()"></div>
+                        <div class="form-group"><label>Rendez vous de chantier du *</label><input type="date" id="cr-date" onchange="declencheChangementFormulaire()"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="banniere-prochain-rdv">
+                <h2 id="display-prochain-rdv">📅 PROCHAINE RÉUNION DE CHANTIER : --/--/---- à --h--</h2>
+                <div class="no-print" style="margin-top: 15px; display: flex; gap: 15px; justify-content: center;">
+                    <input type="date" id="cr-prochaine-date" onchange="declencheChangementFormulaire()">
+                    <input type="time" id="cr-prochaine-heure" value="10:00" onchange="declencheChangementFormulaire()">
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>⚠️ Remarques et Constats par Lot</h2>
+            <div class="no-print" style="background:#f1f5f9; padding:15px; border-radius:6px; margin-bottom:15px;">
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label>Sélectionner le Lot concerné</label>
+                        <select id="obs-lot-select"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date du constat</label>
+                        <input type="date" id="obs-date">
+                    </div>
+                    <div class="form-group">
+                        <label>Urgence</label>
+                        <select id="obs-urgence">
+                            <option>Faible</option>
+                            <option selected>Moyen</option>
+                            <option>Urgent</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Localisation précise (ex: Salle de bain étage)</label>
+                    <input type="text" id="obs-loc" placeholder="Chantier">
+                </div>
+                <div class="form-group">
+                    <label>Description de l'anomalie / consigne</label>
+                    <textarea id="obs-desc" rows="2" placeholder="Saisir la remarque ici..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>📸 Photo d'illustration (Optionnel)</label>
+                    <input type="file" id="obs-file-img" accept="image/*" onchange="chargerImageRemarque(event)">
+                    <span id="obs-img-status" style="font-size:0.8rem; color:#64748b; font-weight:bold;">Aucun fichier</span>
+                </div>
+                <button type="button" class="btn" style="margin-top:10px;" onclick="ajouterNouvelleRemarque()">Ajouter l'observation</button>
+            </div>
+            
+            <div id="render-zone-remarques-table"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // Structure globale multi-chantiers
-    let APP_DATABASE = {
-        listeChantiers: [{ id: "chantier_defaut", nom: "Chantier Principal 1" }],
-        donneesChantiers: {
-            "chantier_defaut": {
-                champs: { projet: "", crNum: "", date: "", meteo: "" },
-                lots: [],
-                remarques: [],
-                planData: { image: "", epingles: [] }
-            }
+// ============================================================================
+// --- SYSTÈME DE SAUVEGARDE AUTOMATIQUE MULTI-CHANTIER INDÉPENDANT (OPTION B) ---
+// ============================================================================
+let APP_DATABASE = {
+    listeChantiers: [{ id: "chantier_defaut", nom: "Chantier Principal Initial" }],
+    donneesChantiers: { "chantier_defaut": [] }
+};
+let ID_CHANTIER_ACTUEL = "chantier_defaut";
+
+// Initialisation globale au démarrage
+window.addEventListener('DOMContentLoaded', () => {
+    // Établir la date par défaut de la saisie d'observations
+    document.getElementById('obs-date').value = new Date().toISOString().substring(0, 10);
+    document.getElementById('cr-date').value = new Date().toISOString().substring(0, 10);
+
+    // Charger l'immense base depuis le stockage local de l'iPad
+    const localStock = localStorage.getItem('MULTI_PROJET_APPLICATION_STORAGE');
+    if (localStock) {
+        try {
+            APP_DATABASE = JSON.parse(localStock);
+        } catch(e) {
+            console.error("Erreur de parsing, réinitialisation de la structure multi-projets.");
         }
+    }
+    
+    if(!APP_DATABASE.listeChantiers || APP_DATABASE.listeChantiers.length === 0) {
+        APP_DATABASE.listeChantiers = [{ id: "chantier_defaut", nom: "Chantier Principal Initial" }];
+        APP_DATABASE.donneesChantiers = { "chantier_defaut": [] };
+    }
+    
+    // Définir le projet actif au démarrage sur le premier de la liste
+    ID_CHANTIER_ACTUEL = APP_DATABASE.listeChantiers[0].id;
+    
+    remplirSelecteurChantiersUi();
+    chargerDonneesDuChantierSelected();
+
+    // ECOUTEURS AUTOMATIQUES GENERIQUES : Capte toutes les frappes de texte ou les clics pour sauvegarder instantanément
+    document.addEventListener('input', (e) => {
+        if(e.target.id && e.target.id !== 'global-select-chantier') {
+            declencherSauvegardeAutomatiqueMulti();
+        }
+    });
+    document.addEventListener('change', (e) => {
+        if(e.target.id && e.target.id !== 'global-select-chantier') {
+            declencherSauvegardeAutomatiqueMulti();
+        }
+    });
+});
+
+function remplirSelecteurChantiersUi() {
+    const select = document.getElementById('global-select-chantier');
+    select.innerHTML = "";
+    APP_DATABASE.listeChantiers.forEach(ch => {
+        let opt = document.createElement('option');
+        opt.value = ch.id;
+        opt.innerText = ch.nom;
+        if(ch.id === ID_CHANTIER_ACTUEL) opt.selected = true;
+        select.appendChild(opt);
+    });
+}
+
+function creerUnNouveauChantier() {
+    let nom = prompt("Veuillez saisir le nom ou l'adresse du nouveau projet de chantier :");
+    if(!nom || nom.trim() === "") return;
+
+    let idUnique = "projet_" + Date.now();
+    APP_DATABASE.listeChantiers.push({ id: idUnique, nom: nom.trim() });
+    
+    // Initialise une base de données vide pour ce projet distinct
+    APP_DATABASE.donneesChantiers[idUnique] = []; 
+    
+    // Éteindre temporairement le projet en cours pour migrer sur le nouveau
+    ID_CHANTIER_ACTUEL = idUnique;
+    
+    // Vider la totalité des inputs de l'écran pour démarrer sur une page vierge
+    viderAbsolumentTousLesChampsDeLaPage();
+    
+    // Remettre des variables structurelles à zéro (Spécifique à votre application d'origine)
+    entreprisesMemoire = [];
+    remarquesMemoire = [];
+    pinsMemoire = [];
+    logoBase64 = "";
+    document.getElementById('logo-img').style.display='none';
+    document.getElementById('logo-prompt').style.display='block';
+    
+    renderTout();
+    
+    sauvegarderDansLeStockageDeLiPad();
+    remplirSelecteurChantiersUi();
+    
+    alert("Nouveau projet '" + nom + "' créé et activé !");
+}
+
+function changerDeChantierActuel() {
+    // 1. Capturer de force l'état actuel pour ne rien perdre du projet qu'on quitte
+    capturerEtSauvegarderEtatActuel();
+    
+    // 2. Commuter l'identifiant sur le nouveau sélectionné
+    ID_CHANTIER_ACTUEL = document.getElementById('global-select-chantier').value;
+    
+    // 3. Charger le jeu de données correspondant
+    chargerDonneesDuChantierSelected();
+}
+
+function capturerEtSauvegarderEtatActuel() {
+    let inputsData = [];
+    
+    // Parcourt tous les composants éditables présents dans votre interface de base
+    document.querySelectorAll('input, textarea, select').forEach((element) => {
+        if(element.id && element.id !== 'global-select-chantier' && element.type !== 'file') {
+            inputsData.push({
+                id: element.id,
+                value: element.value,
+                checked: element.type === 'checkbox' || element.type === 'radio' ? element.checked : null
+            });
+        }
+    });
+    
+    // Sauvegarde également les tableaux javascript d'origine de votre fichier (les objets complexes)
+    let internalState = {
+        domInputs: inputsData,
+        entreprises: entreprisesMemoire,
+        remarques: remarquesMemoire,
+        pins: pinsMemoire,
+        logo: logoBase64
     };
-    let ID_CHANTIER_ACTUEL = "chantier_defaut";
-    let imageRemarqueEnCoursBase64 = "";
+    
+    APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL] = internalState;
+}
 
-    // Démarrage initial
-    window.onload = function() {
-        const localStock = localStorage.getItem('PRO_CHANTIERS_DATABASE_V44');
-        if (localStock) {
-            try {
-                APP_DATABASE = JSON.parse(localStock);
-                if(!APP_DATABASE.listeChantiers || APP_DATABASE.listeChantiers.length === 0) {
-                    throw new Error("Base vide");
-                }
-            } catch(e) {
-                reinstallerBaseDefaut();
-            }
-        } else {
-            reinstallerBaseDefaut();
+function chargerDonneesDuChantierSelected() {
+    let state = APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL];
+    
+    if(!state || Array.isArray(state) || !state.domInputs) {
+        // Si le projet est complètement neuf ou vide
+        viderAbsolumentTousLesChampsDeLaPage();
+        entreprisesMemoire = [];
+        remarquesMemoire = [];
+        pinsMemoire = [];
+        logoBase64 = "";
+        document.getElementById('logo-img').style.display='none';
+        document.getElementById('logo-prompt').style.display='block';
+        renderTout();
+        return;
+    }
+
+    // Réinjecter les valeurs dans vos inputs standards de formulaire
+    state.domInputs.forEach(item => {
+        let element = document.getElementById(item.id);
+        if(element) {
+            element.value = item.value;
+            if(item.checked !== null) element.checked = item.checked;
         }
-        
-        ID_CHANTIER_ACTUEL = APP_DATABASE.listeChantiers[0].id;
-        remplirSelecteurChantiers();
-        chargerDonneesDuChantierSelected();
+    });
+
+    // Restaurer les variables internes de votre moteur d'affichage
+    entreprisesMemoire = state.entreprises || [];
+    remarquesMemoire = state.remarques || [];
+    pinsMemoire = state.pins || [];
+    logoBase64 = state.logo || "";
+    
+    if(logoBase64) {
+        document.getElementById('logo-img').src = logoBase64;
+        document.getElementById('logo-img').style.display = 'block';
+        document.getElementById('logo-prompt').style.display = 'none';
+    } else {
+        document.getElementById('logo-img').style.display = 'none';
+        document.getElementById('logo-prompt').style.display = 'block';
+    }
+
+    // Forcer le rafraîchissement complet des tableaux de votre application
+    renderTout();
+    majBanniereRdvText();
+}
+
+function viderAbsolumentTousLesChampsDeLaPage() {
+    document.querySelectorAll('input, textarea, select').forEach((element) => {
+        if(element.id && element.id !== 'global-select-chantier' && element.id !== 'obs-urgence' && element.id !== 'obs-date') {
+            if(element.type === 'checkbox' || element.type === 'radio') {
+                element.checked = false;
+            } else {
+                element.value = "";
+            }
+        }
+    });
+}
+
+function declencherSauvegardeAutomatiqueMulti() {
+    document.getElementById('statut-sauvegarde-multi').innerText = "⏳ Enregistrement automatique en cours...";
+    document.getElementById('statut-sauvegarde-multi').style.color = "#ea580c";
+    
+    capturerEtSauvegarderEtatActuel();
+    sauvegarderDansLeStockageDeLiPad();
+    
+    setTimeout(() => {
+        document.getElementById('statut-sauvegarde-multi').innerText = "✅ Modifications sauvegardées localement";
+        document.getElementById('statut-sauvegarde-multi').style.color = "#10b981";
+    }, 400);
+}
+
+function sauvegarderDansLeStockageDeLiPad() {
+    localStorage.setItem('MULTI_PROJET_APPLICATION_STORAGE', JSON.stringify(APP_DATABASE));
+}
+
+
+// ============================================================================
+// --- LE MOTEUR APPLICATIF DE VOTRE DOSSIER CR_CHANTIER_OLIVIER D'ORIGINE ---
+// ============================================================================
+let entreprisesMemoire = [
+    { lotNum: "01", metier: "Couverture", nom: "Loret", rep: "", tel: "", mail: "", periodes: [{ label: "Chapeaux en toiture", start: "2026-07-06", end: "2026-07-11", done: false }] },
+    { lotNum: "02", metier: "Menuiserie Extérieure", nom: "Menuiserie Radigue", rep: "", tel: "", mail: "", periodes: [{ label: "Menuiserie Extérieure", start: "2026-07-06", end: "2026-07-10", done: false }] },
+    { lotNum: "03", metier: "Menuiserie Intérieure", nom: "Menuiserie Radigue", rep: "", tel: "", mail: "", periodes: [
+        { label: "Démolition", start: "2026-07-20", end: "2026-07-24", done: false },
+        { label: "Doublages", start: "2026-07-27", end: "2026-07-31", done: false },
+        { label: "Doublages", start: "2026-08-24", end: "2026-09-04", done: false },
+        { label: "Plafond", start: "2026-09-07", end: "2026-09-18", done: false },
+        { label: "Cloisons", start: "2026-09-21", end: "2026-10-02", done: false }
+    ]},
+    { lotNum: "04", metier: "Electricite", nom: "Colin", rep: "", tel: "", mail: "", periodes: [
+        { label: "Gaine Etage", start: "2026-07-27", end: "2026-07-31", done: false },
+        { label: "Gaine RdC", start: "2026-08-24", end: "2026-08-28", done: false },
+        { label: "Fileries", start: "2026-09-21", end: "2026-25-09", done: false },
+        { label: "Appareillages", start: "2026-10-19", end: "2026-10-23", done: false }
+    ]},
+    { lotNum: "05", metier: "Plomberie", nom: "V2M", rep: "", tel: "", mail: "", periodes: [
+        { label: "Passage PER", start: "2026-08-24", end: "2026-08-28", done: false },
+        { label: "Appareillages", start: "2026-10-05", end: "2026-10-09", done: false }
+    ]},
+    { lotNum: "06", metier: "Carrelage / Faience", nom: "CF Carrelage", rep: "", tel: "", mail: "", periodes: [
+        { label: "Ragréage", start: "2026-10-12", end: "2026-10-16", done: false },
+        { label: "Carrelage", start: "2026-10-19", end: "2026-10-23", done: false },
+        { label: "Faience", start: "2026-10-26", end: "2026-10-30", done: false }
+    ]},
+    { lotNum: "07", metier: "Peinture", nom: "Simon Peinture", rep: "", tel: "", mail: "", periodes: [
+        { label: "Préparation peinture", start: "2026-11-02", end: "2026-11-06", done: false },
+        { label: "Peinture", start: "2026-11-09", end: "2026-11-20", done: false }
+    ]}
+];
+let remarquesMemoire = [];
+let pinsMemoire = [];
+let temporairePhasesArray = [];
+let logoBase64 = "";
+let imageRemarqueEnCoursBase64 = "";
+
+function switchTab(id) {
+    document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.getElementById('btn-' + id).classList.add('active');
+}
+
+function renderTout() {
+    renderEntreprisesTable();
+    renderSelectObservationsLots();
+    renderRemarquesTableEtVueImpression();
+}
+
+function renderEntreprisesTable() {
+    const tbody = document.getElementById('table-config-entreprises-body');
+    tbody.innerHTML = "";
+    entreprisesMemoire.forEach((ent, idx) => {
+        let tr = document.createElement('tr');
+        let htmlPhases = '<ul style="margin:0; padding-left:15px;">';
+        ent.periodes.forEach((p, pIdx) => {
+            let sDate = p.start ? p.start.split('-').reverse().join('/') : '--';
+            let eDate = p.end ? p.end.split('-').reverse().join('/') : '--';
+            let checkState = p.done ? "checked" : "";
+            htmlPhases += `<li style="margin-bottom:2px;"><span style="font-weight:bold;">${p.label}</span><span style="font-size:0.8rem; color:#64748b;"> (Du ${sDate} au ${eDate})</span><input type="checkbox" ${checkState} onchange="alternerEtatPhaseDirect(${idx}, ${pIdx})" style="float:right;" class="no-print"></li>`;
+        });
+        htmlPhases += '</ul>';
+
+        tr.innerHTML = `<td><strong>Lot ${ent.lotNum}</strong></td><td><b>${ent.metier}</b></td><td>${ent.nom}</td><td>${htmlPhases}</td><td style="text-align:center;"><button class="btn-edit" onclick="chargerEntreprisePourEdition(${idx})">✏️ Gérer</button></td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+function alternerEtatPhaseDirect(entIdx, pIdx) {
+    entreprisesMemoire[entIdx].periodes[pIdx].done = !entreprisesMemoire[entIdx].periodes[pIdx].done;
+    declencherSauvegardeAutomatiqueMulti();
+}
+
+function renderSelectObservationsLots() {
+    const select = document.getElementById('obs-lot-select');
+    select.innerHTML = "";
+    entreprisesMemoire.forEach(e => {
+        let o = document.createElement('option');
+        o.value = e.lotNum;
+        o.innerText = `Lot ${e.lotNum} - ${e.metier} (${e.nom})`;
+        select.appendChild(o);
+    });
+}
+
+function ajouterPeriodeMemoire() {
+    let lbl = document.getElementById('tmp-period-label').value;
+    let st = document.getElementById('tmp-period-start').value;
+    let en = document.getElementById('tmp-period-end').value;
+    let dn = document.getElementById('tmp-period-done').checked;
+    if(!lbl) { alert("Indiquez un nom de phase"); return; }
+    temporairePhasesArray.push({ label: lbl, start: st, end: en, done: dn });
+    document.getElementById('tmp-period-label').value = "";
+    document.getElementById('tmp-period-done').checked = false;
+    refreshPhasesListUi();
+}
+
+function refreshPhasesListUi() {
+    let c = document.getElementById('container-periodes-ui');
+    c.innerHTML = "";
+    temporairePhasesArray.forEach((p, i) => {
+        let d = document.createElement('div');
+        d.style = "padding:5px; background:white; margin-bottom:5px; border-radius:4px; font-size:0.9rem; display:flex; justify-content:space-between;";
+        d.innerHTML = `<span>⚙️ ${p.label} [${p.start} au ${p.end}] ${p.done?'<b>(Fait)</b>':''}</span><button type="button" class="btn-danger" onclick="temporairePhasesArray.splice(${i},1); refreshPhasesListUi();">❌</button>`;
+        c.appendChild(d);
+    });
+}
+
+function sauvegarderEntreprise(e) {
+    e.preventDefault();
+    let idx = document.getElementById('ent-index').value;
+    let entObj = {
+        lotNum: document.getElementById('ent-lot-num').value,
+        metier: document.getElementById('ent-metier').value,
+        nom: document.getElementById('ent-nom').value,
+        rep: document.getElementById('ent-rep').value,
+        tel: document.getElementById('ent-tel').value,
+        mail: document.getElementById('ent-mail').value,
+        periodes: [...temporairePhasesArray]
     };
 
-    function reinstallerBaseDefaut() {
-        APP_DATABASE = {
-            listeChantiers: [{ id: "chantier_defaut", nom: "Chantier Principal 1" }],
-            donneesChantiers: {
-                "chantier_defaut": {
-                    champs: { projet: "Chantier Principal 1", crNum: "CR-01", date: "", meteo: "" },
-                    lots: [],
-                    remarques: [],
-                    planData: { image: "", epingles: [] }
-                }
-            }
-        };
+    if(idx === "") {
+        entreprisesMemoire.push(entObj);
+    } else {
+        entreprisesMemoire[parseInt(idx)] = entObj;
     }
+    annulerEditionEntreprise();
+    renderTout();
+    declencherSauvegardeAutomatiqueMulti();
+}
 
-    function remplirSelecteurChantiers() {
-        const select = document.getElementById('global-select-chantier');
-        select.innerHTML = "";
-        APP_DATABASE.listeChantiers.forEach(ch => {
-            let opt = document.createElement('option');
-            opt.value = ch.id;
-            opt.innerText = ch.nom;
-            if(ch.id === ID_CHANTIER_ACTUEL) opt.selected = true;
-            select.appendChild(opt);
-        });
-    }
+function chargerEntreprisePourEdition(idx) {
+    let ent = entreprisesMemoire[idx];
+    document.getElementById('ent-index').value = idx;
+    document.getElementById('ent-lot-num').value = ent.lotNum;
+    document.getElementById('ent-metier').value = ent.metier;
+    document.getElementById('ent-nom').value = ent.nom;
+    document.getElementById('ent-rep').value = ent.rep || "";
+    document.getElementById('ent-tel').value = ent.tel || "";
+    document.getElementById('ent-mail').value = ent.mail || "";
+    temporairePhasesArray = [...ent.periodes];
+    refreshPhasesListUi();
+    document.getElementById('form-entreprise-title').innerText = "Modifier le Lot / L'Entreprise";
+    document.getElementById('btn-annuler-ent').style.display = "inline-block";
+    document.getElementById('btn-soumettre-ent').className = "btn";
+}
 
-    function creerUnNouveauChantier() {
-        let nom = prompt("Saisissez le nom du nouveau chantier / projet :");
-        if(!nom || nom.trim() === "") return;
+function annulerEditionEntreprise() {
+    document.getElementById('ent-index').value = "";
+    document.getElementById('form-entreprise').reset();
+    temporairePhasesArray = [];
+    refreshPhasesListUi();
+    document.getElementById('form-entreprise-title').innerText = "Ajouter un Lot / Une Entreprise";
+    document.getElementById('btn-annuler-ent').style.display = "none";
+    document.getElementById('btn-soumettre-ent').className = "btn btn-success";
+}
 
-        let idUnique = "ch_" + Date.now();
-        APP_DATABASE.listeChantiers.push({ id: idUnique, nom: nom.trim() });
-        APP_DATABASE.donneesChantiers[idUnique] = {
-            champs: { projet: nom.trim(), crNum: "CR-01", date: "", meteo: "" },
-            lots: [],
-            remarques: [],
-            planData: { image: "", epingles: [] }
-        };
-
-        ID_CHANTIER_ACTUEL = idUnique;
-        sauvegarderDansLeStockageDeLiPad();
-        remplirSelecteurChantiers();
-        chargerDonneesDuChantierSelected();
-    }
-
-    function changerDeChantierActuel() {
-        ID_CHANTIER_ACTUEL = document.getElementById('global-select-chantier').value;
-        chargerDonneesDuChantierSelected();
-    }
-
-    function chargerDonneesDuChantierSelected() {
-        let dataset = APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL];
-        if(!dataset) return;
-
-        // Restauration de l'en-tête
-        document.getElementById('cfg-projet').value = dataset.champs.projet || "";
-        document.getElementById('cfg-cr-num').value = dataset.champs.crNum || "";
-        document.getElementById('cfg-date').value = dataset.champs.date || "";
-        document.getElementById('cfg-meteo').value = dataset.champs.meteo || "";
-
-        // Réinitialisation de l'image temporaire de remarque
-        imageRemarqueEnCoursBase64 = "";
-        document.getElementById('obs-img-status').innerText = "";
-
-        // Restauration du plan
-        const imgEl = document.getElementById('plan-img');
-        if(dataset.planData && dataset.planData.image) {
-            imgEl.src = dataset.planData.image;
-            imgEl.style.display = "block";
-        } else {
-            imgEl.src = "";
-            imgEl.style.display = "none";
-        }
-
-        renderTout();
-    }
-
-    function declencherSauvegardeAutomatique() {
-        document.getElementById('statut-liaison-stockage').innerText = "⏳ Enregistrement...";
-        
-        let dataset = APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL];
-        if(dataset) {
-            dataset.champs.projet = document.getElementById('cfg-projet').value;
-            dataset.champs.crNum = document.getElementById('cfg-cr-num').value;
-            dataset.champs.date = document.getElementById('cfg-date').value;
-            dataset.champs.meteo = document.getElementById('cfg-meteo').value;
-
-            // Met à jour l'intitulé dynamique dans la liste déroulante globale
-            let idx = APP_DATABASE.listeChantiers.findIndex(x => x.id === ID_CHANTIER_ACTUEL);
-            if(idx !== -1 && dataset.champs.projet) {
-                APP_DATABASE.listeChantiers[idx].nom = dataset.champs.projet;
-                let opt = document.querySelector(`#global-select-chantier option[value="${ID_CHANTIER_ACTUEL}"]`);
-                if(opt) opt.innerText = dataset.champs.projet;
-            }
-        }
-
-        sauvegarderDansLeStockageDeLiPad();
-        
-        setTimeout(() => {
-            document.getElementById('statut-liaison-stockage').innerText = "✅ Sauvegarde automatique active";
-        }, 400);
-    }
-
-    function sauvegarderDansLeStockageDeLiPad() {
-        localStorage.setItem('PRO_CHANTIERS_DATABASE_V44', JSON.stringify(APP_DATABASE));
-    }
-
-    // Gestion du système d'onglets
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        
-        event.target.classList.add('active');
-        document.getElementById('tab-' + tabId).classList.add('active');
-        
-        if(tabId === 'cr') {
-            renderTout();
-        }
-    }
-
-    // Module Lots
-    function ajouterLot() {
-        const nom = document.getElementById('lot-nom').value.trim();
-        const statut = document.getElementById('lot-statut').value;
-        if(!nom) return;
-
-        APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL].lots.push({ nom, statut });
-        document.getElementById('lot-nom').value = "";
-        
-        declencherSauvegardeAutomatique();
-        renderTout();
-    }
-
-    function supprimerLot(index) {
-        APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL].lots.splice(index, 1);
-        declencherSauvegardeAutomatique();
-        renderTout();
-    }
-
-    // Module Épingles et Plans
-    function gererChargementFichierPlan() {
-        const file = document.getElementById('plan-file-input').files[0];
-        if(!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL].planData.image = e.target.result;
-            APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL].planData.epingles = [];
-            
-            const imgEl = document.getElementById('plan-img');
-            imgEl.src = e.target.result;
-            imgEl.style.display = "block";
-            
-            declencherSauvegardeAutomatique();
-            renderTout();
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function ajouterEpinglesSurPlan(e) {
-        const container = document.getElementById('plan-container');
-        const rect = container.getBoundingClientRect();
-        
-        // Coordonnées relatives en pourcentage pour rester précis si la taille d'écran change
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-        let dataset = APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL];
-        const numIndex = dataset.planData.epingles.length + 1;
-
-        dataset.planData.epingles.push({ num: numIndex, x: x, y: y });
-        
-        declencherSauvegardeAutomatique();
-        renderEpinglesGraphiques();
-    }
-
-    function renderEpinglesGraphiques() {
-        // Nettoyer les anciennes épingles graphiques
-        document.querySelectorAll('.pin').forEach(el => el.remove());
-        
-        const container = document.getElementById('plan-container');
-        let dataset = APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL];
-        
-        if(dataset.planData && dataset.planData.epingles) {
-            dataset.planData.epingles.forEach(p => {
-                let d = document.createElement('div');
-                d.className = 'pin';
-                d.style.left = p.x + '%';
-                d.style.top = p.y + '%';
-                d.innerText = p.num;
-                container.appendChild(d);
-            });
-        }
-    }
-
-    // Module Observations
-    function convertirPhotoRemarqueEnBase64(e) {
-        const file = e.target.files[0];
-        if(file) {
-            const r = new FileReader();
-            r.onload = function(ev) {
-                imageRemarqueEnCoursBase64 = ev.target.result;
-                document.getElementById('obs-img-status').innerText = "✓ Image prête";
-            };
-            r.readAsDataURL(file);
-        }
-    }
-
-    function validerEtEnregistrerRemarque() {
-        const lot = document.getElementById('obs-lot-select').value;
-        const loc = document.getElementById('obs-loc').value || "Zone Chantier";
-        const urgence = document.getElementById('obs-urgence').value;
-        const desc = document.getElementById('obs-desc').value;
-
-        if(!desc) { alert("Veuillez saisir une description."); return; }
-
-        let dataset = APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL];
-        let numObservation = dataset.remarques.length + 1;
-
-        dataset.remarques.push({
-            num: numObservation,
-            lot: lot,
-            localisation: loc,
-            urgence: urgence,
-            description: desc,
-            image: imageRemarqueEnCoursBase64
-        });
-
-        // Clear formulaire
-        document.getElementById('obs-desc').value = "";
-        document.getElementById('obs-loc').value = "";
-        imageRemarqueEnCoursBase64 = "";
-        document.getElementById('obs-img-status').innerText = "";
-        document.getElementById('obs-img-input').value = "";
-
-        declencherSauvegardeAutomatique();
-        renderTout();
-    }
-
-    function supprimerRemarque(index) {
-        APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL].remarques.splice(index, 1);
-        declencherSauvegardeAutomatique();
-        renderTout();
-    }
-
-    // Moteur d'affichage dynamique (Rendering)
-    function renderTout() {
-        let dataset = APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL];
-        if(!dataset) return;
-
-        // 1. Mise à jour de la liste de configuration des lots
-        const containerLots = document.getElementById('lots-liste-container');
-        containerLots.innerHTML = "";
-        dataset.lots.forEach((l, idx) => {
-            let row = document.createElement('div');
-            row.style = "display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #e2e8f0;";
-            row.innerHTML = `<strong>${l.nom}</strong> <span>${l.statut}</span> 
-            <button class="btn-action btn-danger" style="padding:4px 8px; font-size:12px;" onclick="supprimerLot(${idx})">Supprimer</button>`;
-            containerLots.appendChild(row);
-        });
-
-        // 2. Synchronisation de la liste déroulante des lots dans l'onglet plan
-        const selectObsLot = document.getElementById('obs-lot-select');
-        selectObsLot.innerHTML = "<option value='Général / Aucun'>Général / Aucun</option>";
-        dataset.lots.forEach(l => {
-            let o = document.createElement('option');
-            o.value = l.nom;
-            o.innerText = l.nom;
-            selectObsLot.appendChild(o);
-        });
-
-        // 3. Rendu des Épingles Visuelles
-        renderEpinglesGraphiques();
-
-        // 4. Génération de l'état d'impression (Onglet 3)
-        document.getElementById('print-titre').innerText = (dataset.champs.projet || "COMPTE RENDU DE CHANTIER").toUpperCase();
-        document.getElementById('print-sub').innerText = "Rapport technique d'exécution : " + (dataset.champs.crNum || "N/A");
-        document.getElementById('print-date').innerText = "Date de visite : " + (dataset.champs.date || "Non spécifiée");
-        document.getElementById('print-meteo').innerText = "Météo : " + (dataset.champs.meteo || "N/A");
-
-        // Rendu table des lots finale
-        const tLots = document.getElementById('table-print-lots');
-        tLots.innerHTML = "";
-        if(dataset.lots.length === 0) {
-            tLots.innerHTML = `<tr><td colspan="2" style="padding:10px; text-align:center; border:1px solid var(--border);">Aucun lot configuré</td></tr>`;
-        } else {
-            dataset.lots.forEach(l => {
-                tLots.innerHTML += `<tr>
-                    <td style="padding:10px; border:1px solid var(--border); font-weight:600;">${l.nom}</td>
-                    <td style="padding:10px; border:1px solid var(--border); text-align:center;">${l.statut}</td>
-                </tr>`;
-            });
-        }
-
-        // Rendu table des observations finale
-        const tRemarques = document.getElementById('table-print-remarques');
-        tRemarques.innerHTML = "";
-        if(dataset.remarques.length === 0) {
-            tRemarques.innerHTML = `<tr><td colspan="6" style="padding:10px; text-align:center; border:1px solid var(--border);">Aucune remarque enregistrée pour le moment.</td></tr>`;
-        } else {
-            dataset.remarques.forEach((r, idx) => {
-                let imgHtml = r.image ? `<img src="${r.image}" style="max-width:100px; max-height:80px; border-radius:4px; object-fit:cover;">` : `<span style="color:#94a3b8; font-size:12px;">Pas de photo</span>`;
-                tRemarques.innerHTML += `<tr>
-                    <td style="padding:10px; border:1px solid var(--border); text-align:center; font-weight:bold;">${r.num}</td>
-                    <td style="padding:10px; border:1px solid var(--border); font-size:14px;">${r.lot}</td>
-                    <td style="padding:10px; border:1px solid var(--border); font-size:14px;">${r.localisation}</td>
-                    <td style="padding:10px; border:1px solid var(--border);">${r.description} <br><br class="no-print"><button class="btn-action btn-danger no-print" style="padding:2px 6px; font-size:11px;" onclick="supprimerRemarque(${idx})">Effacer</button></td>
-                    <td style="padding:10px; border:1px solid var(--border); text-align:center; font-size:13px;">${r.urgence}</td>
-                    <td style="padding:10px; border:1px solid var(--border); text-align:center;">${imgHtml}</td>
-                </tr>`;
-            });
-        }
-    }
-
-    function reinitialiserChantierActuel() {
-        if(confirm("Êtes-vous sûr de vouloir vider l'ensemble des données de ce chantier ? Cette action effacera également son plan et ses photos.")) {
-            APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL] = {
-                champs: { projet: APP_DATABASE.listeChantiers.find(x => x.id === ID_CHANTIER_ACTUEL).nom, crNum: "CR-01", date: "", meteo: "" },
-                lots: [],
-                remarques: [],
-                planData: { image: "", epingles: [] }
-            };
-            declencherSauvegardeAutomatique();
-            chargerDonneesDuChantierSelected();
-        }
-    }
-</script>
-</body>
-</html>
+function ajouter
