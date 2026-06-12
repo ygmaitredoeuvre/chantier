@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Compte Rendu Global Multi-Chantiers - V44 (iPad Auto-Save)</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --border: #cbd5e1;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --edit: #0284c7;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Barre supérieure Multi-Chantier iOS */
+        .barre-multi-chantier {
+            background: #0f172a;
+            color: white;
+            padding: 12px 20px;
+            margin: -20px -20px 20px -20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .select-chantier-input {
+            padding: 8px 12px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: white;
+            color: black;
+            font-weight: bold;
+        }
+        .btn-nouveau-chantier {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .statut-sauvegarde {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .container { max-width: 1600px; margin: 0 auto; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+
+        .tab-btn {
+            background: #e2e8f0;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 15px;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .card {
+            background: var(--card);
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        h2, h3 { margin-top: 0; color: var(--primary); }
+
+        .grid-config {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        label { font-weight: 600; font-size: 14px; color: #475569; }
+        
+        input, select, textarea {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 16px; /* 16px empêche le zoom auto forcé sur iOS */
+            font-family: inherit;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .btn-action {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-action:hover { background: var(--primary-hover); }
+        .btn-danger { background: var(--danger); }
+        .btn-warning { background: var(--warning); color: black; }
+
+        /* Module Plan Épingles */
+        #plan-container {
+            position: relative;
+            border: 2px dashed var(--border);
+            background: #f1f5f9;
+            min-height: 400px;
+            display: inline-block;
+            max-width: 100%;
+            overflow: auto;
+        }
+        #plan-img { display: block; max-width: 100%; height: auto; pointer-events: none; }
+        .pin {
+            position: absolute;
+            width: 24px; height: 24px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: bold;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Styles d'impression */
+        @media print {
+            body { background: white; padding: 0; }
+            .barre-multi-chantier, .tabs, .no-print, button, input[type="file"] { display: none !important; }
+            .card { border: none; box-shadow: none; padding: 0; margin-bottom: 30px; page-break-inside: avoid; }
+            .tab-content { display: block !important; }
+            input, select, textarea { border: none; padding: 0; background: transparent; resize: none; }
+        }
+    </style>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';</script>
+</head>
+<body>
+
+<div class="barre-multi-chantier">
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <label style="color: white; font-size: 16px; margin: 0;">🏗️ Chantier Actuel :</label>
+        <select id="global-select-chantier" class="select-chantier-input" onchange="changerDeChantierActuel()"></select>
+        <button class="btn-nouveau-chantier" onclick="creerUnNouveauChantier()">➕ Nouveau Projet</button>
+    </div>
+    <div class="statut-sauvegarde" id="statut-liaison-stockage">✅ Sauvegarde automatique active</div>
+</div>
+
+<div class="container">
+    <div class="tabs no-print">
+        <button class="tab-btn active" onclick="switchTab('config')">⚙️ 1. Configuration &amp; Lots</button>
+        <button class="tab-btn" onclick="switchTab('plan')">🗺️ 2. Plans &amp; Repères</button>
+        <button class="tab-btn" onclick="switchTab('cr')" onclick="renderTout()">📝 3. Compte Rendu Final</button>
+    </div>
+
+    <div id="tab-config" class="tab-content active">
+        <div class="card">
+            <h2>En-tête Général du Rapport</h2>
+            <div class="grid-config">
+                <div class="form-group">
+                    <label>Nom du Projet / Chantier</label>
+                    <input type="text" id="cfg-projet" placeholder="Ex: Rénovation Résidence Olivier" oninput="declencherSauvegardeAutomatique()">
+                </div>
+                <div class="form-group">
+                    <label>Numéro de Compte Rendu</label>
+                    <input type="text" id="cfg-cr-num" placeholder="Ex: CR-01" oninput="declencherSauvegardeAutomatique()">
+                </div>
+                <div class="form-group">
+                    <label>Date de la Visite</label>
+                    <input type="date" id="cfg-date" oninput="declencherSauvegardeAutomatique()">
+                </div>
+                <div class="form-group">
+                    <label>Météo</label>
+                    <input type="text" id="cfg-meteo" placeholder="Ex: Beau temps, 18°C" oninput="declencherSauvegardeAutomatique()">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Gestion des Lots &amp; Entreprises</h2>
+            <div class="grid-config" style="grid-template-columns: 2fr 1fr 1fr;">
+                <input type="text" id="lot-nom" placeholder="Nom du lot / Entreprise (Ex: Menuiserie - Durand SAS)">
+                <select id="lot-statut">
+                    <option value="Conforme">✅ Conforme</option>
+                    <option value="En cours">⏳ En cours</option>
+                    <option value="Retard">🚨 Retard</option>
+                    <option value="Non commencé">⚪ Non commencé</option>
+                </select>
+                <button class="btn-action" onclick="ajouterLot()">Ajouter le Lot</button>
+            </div>
+            <div id="lots-liste-container" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <div id="tab-plan" class="tab-content">
+        <div class="card no-print">
+            <h2>Chargement du Plan (PDF ou Image)</h2>
+            <input type="file" id="plan-file-input" accept="image/*,application/pdf" onchange="gererChargementFichierPlan()">
+            <p style="font-size: 13px; color: #64748b;">Touchez le plan pour ajouter un repère numéroté à l'endroit précis de l'anomalie.</p>
+        </div>
+
+        <div class="card" style="text-align: center;">
+            <div id="plan-container" onclick="ajouterEpinglesSurPlan(event)">
+                <img id="plan-img" src="" alt="Aucun plan chargé" style="display:none;">
+                <canvas id="pdf-canvas" style="display:none; max-width:100%;"></canvas>
+            </div>
+        </div>
+
+        <div class="card no-print">
+            <h3>Saisie d'une Remarque liée au Plan</h3>
+            <div class="grid-config">
+                <div class="form-group">
+                    <label>Associer à un Lot</label>
+                    <select id="obs-lot-select"></select>
+                </div>
+                <div class="form-group">
+                    <label>Localisation précise</label>
+                    <input type="text" id="obs-loc" placeholder="Ex: Chambre 2, RDC">
+                </div>
+                <div class="form-group">
+                    <label>Degré d'Urgence</label>
+                    <select id="obs-urgence">
+                        <option value="Faible">🟢 Faible</option>
+                        <option value="Moyen">🟡 Moyen</option>
+                        <option value="Critique">🔴 Critique</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Description du constat</label>
+                <textarea id="obs-desc" rows="3" placeholder="Description de l'anomalie ou remarque..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Photo d'illustration (Optionnel)</label>
+                <input type="file" id="obs-img-input" accept="image/*" onchange="convertirPhotoRemarqueEnBase64(event)">
+                <span id="obs-img-status" style="font-size:12px; color:var(--success);"></span>
+            </div>
+            <button class="btn-action" onclick="validerEtEnregistrerRemarque()">Enregistrer la Remarque</button>
+        </div>
+    </div>
+
+    <div id="tab-cr" class="tab-content">
+        <div class="card no-print" style="display: flex; gap: 10px;">
+            <button class="btn-action" onclick="window.print()">🖨️ Imprimer ou Générer le PDF</button>
+            <button class="btn-action btn-danger" onclick="reinitialiserChantierActuel()">🧹 Réinitialiser ce chantier</button>
+        </div>
+
+        <div class="card" id="document-rendu-final">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary); padding-bottom: 15px;">
+                <div>
+                    <h1 id="print-titre" style="margin:0; color:var(--primary);">COMPTE RENDU DE CHANTIER</h1>
+                    <h3 id="print-sub" style="margin:5px 0 0 0; color:#475569;"></h3>
+                </div>
+                <div style="text-align: right; font-size: 14px;">
+                    <p style="margin:2px 0;"><strong id="print-date"></strong></p>
+                    <p style="margin:2px 0;"><strong id="print-meteo"></strong></p>
+                </div>
+            </div>
+
+            <h3 style="margin-top:25px;">1. État d'avancement des Lots</h3>
+            <table style="width:100%; border-collapse: collapse; margin-bottom: 25px;">
+                <thead>
+                    <tr style="background: var(--primary); color: white;">
+                        <th style="padding:10px; text-align:left; border:1px solid var(--border);">Lot / Entreprise</th>
+                        <th style="padding:10px; text-align:center; border:1px solid var(--border); width:150px;">Statut</th>
+                    </tr>
+                </thead>
+                <tbody id="table-print-lots"></tbody>
+            </table>
+
+            <h3>2. Tableau des Observations &amp; Remarques</h3>
+            <table style="width:100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #334155; color: white;">
+                        <th style="padding:10px; text-align:center; border:1px solid var(--border); width:50px;">N°</th>
+                        <th style="padding:10px; text-align:left; border:1px solid var(--border); width:150px;">Lot</th>
+                        <th style="padding:10px; text-align:left; border:1px solid var(--border); width:150px;">Localisation</th>
+                        <th style="padding:10px; text-align:left; border:1px solid var(--border);">Description</th>
+                        <th style="padding:10px; text-align:center; border:1px solid var(--border); width:80px;">Urgence</th>
+                        <th style="padding:10px; text-align:center; border:1px solid var(--border); width:120px;">Visuel</th>
+                    </tr>
+                </thead>
+                <tbody id="table-print-remarques"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Structure globale multi-chantiers
+    let APP_DATABASE = {
+        listeChantiers: [{ id: "chantier_defaut", nom: "Chantier Principal 1" }],
+        donneesChantiers: {
+            "chantier_defaut": {
+                champs: { projet: "", crNum: "", date: "", meteo: "" },
+                lots: [],
+                remarques: [],
+                planData: { image: "", epingles: [] }
+            }
+        }
+    };
+    let ID_CHANTIER_ACTUEL = "chantier_defaut";
+    let imageRemarqueEnCoursBase64 = "";
+
+    // Démarrage initial
+    window.onload = function() {
+        const localStock = localStorage.getItem('PRO_CHANTIERS_DATABASE_V44');
+        if (localStock) {
+            try {
+                APP_DATABASE = JSON.parse(localStock);
+                if(!APP_DATABASE.listeChantiers || APP_DATABASE.listeChantiers.length === 0) {
+                    throw new Error("Base vide");
+                }
+            } catch(e) {
+                reinstallerBaseDefaut();
+            }
+        } else {
+            reinstallerBaseDefaut();
+        }
+        
+        ID_CHANTIER_ACTUEL = APP_DATABASE.listeChantiers[0].id;
+        remplirSelecteurChantiers();
+        chargerDonneesDuChantierSelected();
+    };
+
+    function reinstallerBaseDefaut() {
+        APP_DATABASE = {
+            listeChantiers: [{ id: "chantier_defaut", nom: "Chantier Principal 1" }],
+            donneesChantiers: {
+                "chantier_defaut": {
+                    champs: { projet: "Chantier Principal 1", crNum: "CR-01", date: "", meteo: "" },
+                    lots: [],
+                    remarques: [],
+                    planData: { image: "", epingles: [] }
+                }
+            }
+        };
+    }
+
+    function remplirSelecteurChantiers() {
+        const select = document.getElementById('global-select-chantier');
+        select.innerHTML = "";
+        APP_DATABASE.listeChantiers.forEach(ch => {
+            let opt = document.createElement('option');
+            opt.value = ch.id;
+            opt.innerText = ch.nom;
+            if(ch.id === ID_CHANTIER_ACTUEL) opt.selected = true;
+            select.appendChild(opt);
+        });
+    }
+
+    function creerUnNouveauChantier() {
+        let nom = prompt("Saisissez le nom du nouveau chantier / projet :");
+        if(!nom || nom.trim() === "") return;
+
+        let idUnique = "ch_" + Date.now();
+        APP_DATABASE.listeChantiers.push({ id: idUnique, nom: nom.trim() });
+        APP_DATABASE.donneesChantiers[idUnique] = {
+            champs: { projet: nom.trim(), crNum: "CR-01", date: "", meteo: "" },
+            lots: [],
+            remarques: [],
+            planData: { image: "", epingles: [] }
+        };
+
+        ID_CHANTIER_ACTUEL = idUnique;
+        sauvegarderDansLeStockageDeLiPad();
+        remplirSelecteurChantiers();
+        chargerDonneesDuChantierSelected();
+    }
+
+    function changerDeChantierActuel() {
+        ID_CHANTIER_ACTUEL = document.getElementById('global-select-chantier').value;
+        chargerDonneesDuChantierSelected();
+    }
+
+    function chargerDonneesDuChantierSelected() {
+        let dataset = APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL];
+        if(!dataset) return;
+
+        // Restauration de l'en-tête
+        document.getElementById('cfg-projet').value = dataset.champs.projet || "";
+        document.getElementById('cfg-cr-num').value = dataset.champs.crNum || "";
+        document.getElementById('cfg-date').value = dataset.champs.date || "";
+        document.getElementById('cfg-meteo').value = dataset.champs.meteo || "";
+
+        // Réinitialisation de l'image temporaire de remarque
+        imageRemarqueEnCoursBase64 = "";
+        document.getElementById('obs-img-status').innerText = "";
+
+        // Restauration du plan
+        const imgEl = document.getElementById('plan-img');
+        if(dataset.planData && dataset.planData.image) {
+            imgEl.src = dataset.planData.image;
+            imgEl.style.display = "block";
+        } else {
+            imgEl.src = "";
+            imgEl.style.display = "none";
+        }
+
+        renderTout();
+    }
+
+    function declencherSauvegardeAutomatique() {
+        document.getElementById('statut-liaison-stockage').innerText = "⏳ Enregistrement...";
+        
+        let dataset = APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL];
+        if(dataset) {
+            dataset.champs.projet = document.getElementById('cfg-projet').value;
+            dataset.champs.crNum = document.getElementById('cfg-cr-num').value;
+            dataset.champs.date = document.getElementById('cfg-date').value;
+            dataset.champs.meteo = document.getElementById('cfg-meteo').value;
+
+            // Met à jour l'intitulé dynamique dans la liste déroulante globale
+            let idx = APP_DATABASE.listeChantiers.findIndex(x => x.id === ID_CHANTIER_ACTUEL);
+            if(idx !== -1 && dataset.champs.projet) {
+                APP_DATABASE.listeChantiers[idx].nom = dataset.champs.projet;
+                let opt = document.querySelector(`#global-select-chantier option[value="${ID_CHANTIER_ACTUEL}"]`);
+                if(opt) opt.innerText = dataset.champs.projet;
+            }
+        }
+
+        sauvegarderDansLeStockageDeLiPad();
+        
+        setTimeout(() => {
+            document.getElementById('statut-liaison-stockage').innerText = "✅ Sauvegarde automatique active";
+        }, 400);
+    }
+
+    function sauvegarderDansLeStockageDeLiPad() {
+        localStorage.setItem('PRO_CHANTIERS_DATABASE_V44', JSON.stringify(APP_DATABASE));
+    }
+
+    // Gestion du système d'onglets
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        event.target.classList.add('active');
+        document.getElementById('tab-' + tabId).classList.add('active');
+        
+        if(tabId === 'cr') {
+            renderTout();
+        }
+    }
+
+    // Module Lots
+    function ajouterLot() {
+        const nom = document.getElementById('lot-nom').value.trim();
+        const statut = document.getElementById('lot-statut').value;
+        if(!nom) return;
+
+        APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL].lots.push({ nom, statut });
+        document.getElementById('lot-nom').value = "";
+        
+        declencherSauvegardeAutomatique();
+        renderTout();
+    }
+
+    function supprimerLot(index) {
+        APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL].lots.splice(index, 1);
+        declencherSauvegardeAutomatique();
+        renderTout();
+    }
+
+    // Module Épingles et Plans
+    function gererChargementFichierPlan() {
+        const file = document.getElementById('plan-file-input').files[0];
+        if(!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL].planData.image = e.target.result;
+            APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL].planData.epingles = [];
+            
+            const imgEl = document.getElementById('plan-img');
+            imgEl.src = e.target.result;
+            imgEl.style.display = "block";
+            
+            declencherSauvegardeAutomatique();
+            renderTout();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function ajouterEpinglesSurPlan(e) {
+        const container = document.getElementById('plan-container');
+        const rect = container.getBoundingClientRect();
+        
+        // Coordonnées relatives en pourcentage pour rester précis si la taille d'écran change
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+        let dataset = APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL];
+        const numIndex = dataset.planData.epingles.length + 1;
+
+        dataset.planData.epingles.push({ num: numIndex, x: x, y: y });
+        
+        declencherSauvegardeAutomatique();
+        renderEpinglesGraphiques();
+    }
+
+    function renderEpinglesGraphiques() {
+        // Nettoyer les anciennes épingles graphiques
+        document.querySelectorAll('.pin').forEach(el => el.remove());
+        
+        const container = document.getElementById('plan-container');
+        let dataset = APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL];
+        
+        if(dataset.planData && dataset.planData.epingles) {
+            dataset.planData.epingles.forEach(p => {
+                let d = document.createElement('div');
+                d.className = 'pin';
+                d.style.left = p.x + '%';
+                d.style.top = p.y + '%';
+                d.innerText = p.num;
+                container.appendChild(d);
+            });
+        }
+    }
+
+    // Module Observations
+    function convertirPhotoRemarqueEnBase64(e) {
+        const file = e.target.files[0];
+        if(file) {
+            const r = new FileReader();
+            r.onload = function(ev) {
+                imageRemarqueEnCoursBase64 = ev.target.result;
+                document.getElementById('obs-img-status').innerText = "✓ Image prête";
+            };
+            r.readAsDataURL(file);
+        }
+    }
+
+    function validerEtEnregistrerRemarque() {
+        const lot = document.getElementById('obs-lot-select').value;
+        const loc = document.getElementById('obs-loc').value || "Zone Chantier";
+        const urgence = document.getElementById('obs-urgence').value;
+        const desc = document.getElementById('obs-desc').value;
+
+        if(!desc) { alert("Veuillez saisir une description."); return; }
+
+        let dataset = APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL];
+        let numObservation = dataset.remarques.length + 1;
+
+        dataset.remarques.push({
+            num: numObservation,
+            lot: lot,
+            localisation: loc,
+            urgence: urgence,
+            description: desc,
+            image: imageRemarqueEnCoursBase64
+        });
+
+        // Clear formulaire
+        document.getElementById('obs-desc').value = "";
+        document.getElementById('obs-loc').value = "";
+        imageRemarqueEnCoursBase64 = "";
+        document.getElementById('obs-img-status').innerText = "";
+        document.getElementById('obs-img-input').value = "";
+
+        declencherSauvegardeAutomatique();
+        renderTout();
+    }
+
+    function supprimerRemarque(index) {
+        APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL].remarques.splice(index, 1);
+        declencherSauvegardeAutomatique();
+        renderTout();
+    }
+
+    // Moteur d'affichage dynamique (Rendering)
+    function renderTout() {
+        let dataset = APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL];
+        if(!dataset) return;
+
+        // 1. Mise à jour de la liste de configuration des lots
+        const containerLots = document.getElementById('lots-liste-container');
+        containerLots.innerHTML = "";
+        dataset.lots.forEach((l, idx) => {
+            let row = document.createElement('div');
+            row.style = "display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #e2e8f0;";
+            row.innerHTML = `<strong>${l.nom}</strong> <span>${l.statut}</span> 
+            <button class="btn-action btn-danger" style="padding:4px 8px; font-size:12px;" onclick="supprimerLot(${idx})">Supprimer</button>`;
+            containerLots.appendChild(row);
+        });
+
+        // 2. Synchronisation de la liste déroulante des lots dans l'onglet plan
+        const selectObsLot = document.getElementById('obs-lot-select');
+        selectObsLot.innerHTML = "<option value='Général / Aucun'>Général / Aucun</option>";
+        dataset.lots.forEach(l => {
+            let o = document.createElement('option');
+            o.value = l.nom;
+            o.innerText = l.nom;
+            selectObsLot.appendChild(o);
+        });
+
+        // 3. Rendu des Épingles Visuelles
+        renderEpinglesGraphiques();
+
+        // 4. Génération de l'état d'impression (Onglet 3)
+        document.getElementById('print-titre').innerText = (dataset.champs.projet || "COMPTE RENDU DE CHANTIER").toUpperCase();
+        document.getElementById('print-sub').innerText = "Rapport technique d'exécution : " + (dataset.champs.crNum || "N/A");
+        document.getElementById('print-date').innerText = "Date de visite : " + (dataset.champs.date || "Non spécifiée");
+        document.getElementById('print-meteo').innerText = "Météo : " + (dataset.champs.meteo || "N/A");
+
+        // Rendu table des lots finale
+        const tLots = document.getElementById('table-print-lots');
+        tLots.innerHTML = "";
+        if(dataset.lots.length === 0) {
+            tLots.innerHTML = `<tr><td colspan="2" style="padding:10px; text-align:center; border:1px solid var(--border);">Aucun lot configuré</td></tr>`;
+        } else {
+            dataset.lots.forEach(l => {
+                tLots.innerHTML += `<tr>
+                    <td style="padding:10px; border:1px solid var(--border); font-weight:600;">${l.nom}</td>
+                    <td style="padding:10px; border:1px solid var(--border); text-align:center;">${l.statut}</td>
+                </tr>`;
+            });
+        }
+
+        // Rendu table des observations finale
+        const tRemarques = document.getElementById('table-print-remarques');
+        tRemarques.innerHTML = "";
+        if(dataset.remarques.length === 0) {
+            tRemarques.innerHTML = `<tr><td colspan="6" style="padding:10px; text-align:center; border:1px solid var(--border);">Aucune remarque enregistrée pour le moment.</td></tr>`;
+        } else {
+            dataset.remarques.forEach((r, idx) => {
+                let imgHtml = r.image ? `<img src="${r.image}" style="max-width:100px; max-height:80px; border-radius:4px; object-fit:cover;">` : `<span style="color:#94a3b8; font-size:12px;">Pas de photo</span>`;
+                tRemarques.innerHTML += `<tr>
+                    <td style="padding:10px; border:1px solid var(--border); text-align:center; font-weight:bold;">${r.num}</td>
+                    <td style="padding:10px; border:1px solid var(--border); font-size:14px;">${r.lot}</td>
+                    <td style="padding:10px; border:1px solid var(--border); font-size:14px;">${r.localisation}</td>
+                    <td style="padding:10px; border:1px solid var(--border);">${r.description} <br><br class="no-print"><button class="btn-action btn-danger no-print" style="padding:2px 6px; font-size:11px;" onclick="supprimerRemarque(${idx})">Effacer</button></td>
+                    <td style="padding:10px; border:1px solid var(--border); text-align:center; font-size:13px;">${r.urgence}</td>
+                    <td style="padding:10px; border:1px solid var(--border); text-align:center;">${imgHtml}</td>
+                </tr>`;
+            });
+        }
+    }
+
+    function reinitialiserChantierActuel() {
+        if(confirm("Êtes-vous sûr de vouloir vider l'ensemble des données de ce chantier ? Cette action effacera également son plan et ses photos.")) {
+            APP_DATABASE.donneesChantiers[ID_CHANTIER_ACTUEL] = {
+                champs: { projet: APP_DATABASE.listeChantiers.find(x => x.id === ID_CHANTIER_ACTUEL).nom, crNum: "CR-01", date: "", meteo: "" },
+                lots: [],
+                remarques: [],
+                planData: { image: "", epingles: [] }
+            };
+            declencherSauvegardeAutomatique();
+            chargerDonneesDuChantierSelected();
+        }
+    }
+</script>
+</body>
+</html>
