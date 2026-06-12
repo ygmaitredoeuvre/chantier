@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compte Rendu Global de Chantier &amp; Annexes - V43 (Auto-Save &amp; Enhanced Headers)</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --border: #cbd5e1;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --edit: #0284c7;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container { max-width: 1600px; margin: 0 auto; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+
+        .tab-btn {
+            background: #e2e8f0;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #475569;
+        }
+
+        .tab-btn.active { background: var(--primary); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .card {
+            background: var(--card);
+            border: 2px solid #64748b;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        .grid-header-2x2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px; margin-bottom: 15px;
+        }
+
+        .section-cadre {
+            border: 1px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 6px;
+            padding: 15px;
+            background: #f8fafc;
+        }
+
+        .section-cadre h3 {
+            margin-top: 0; margin-bottom: 12px;
+            color: var(--primary); font-size: 1rem;
+            border-bottom: 1px solid var(--border); padding-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+        .form-group-row { display: flex; gap: 10px; }
+        .form-group-row .form-group { flex: 1; margin-bottom: 0; }
+        
+        label { font-weight: 600; font-size: 0.85em; color: #475569; }
+        input, select, textarea {
+            padding: 8px 10px;
+            border: 1px solid var(--border); border-radius: 6px;
+            font-size: 0.95rem; background: #ffffff;
+        }
+
+        #cr-num {
+            font-size: 1.4rem !important; font-weight: 900 !important; color: var(--primary);
+        }
+
+        .grid-intermediaire-juridique {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 25px 0;
+        }
+
+        .banniere-prochain-rdv {
+            background: #ffedd5; border: 4px double #ea580c; border-radius: 8px;
+            padding: 25px; margin: 25px 0; text-align: center; color: #7c2d12;
+            box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.1);
+        }
+        .banniere-prochain-rdv h2 { 
+            margin: 0; font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 900;
+        }
+
+        .logo-container {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+            background: #ffffff; border: 1px dashed var(--border); padding: 5px; border-radius: 6px;
+        }
+        .logo-preview { max-height: 50px; max-width: 120px; object-fit: contain; display: none; }
+        .logo-placeholder { font-size: 0.8rem; color: #64748b; cursor: pointer; text-align: center; width: 100%; padding: 10px 0; }
+
+        .btn {
+            background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;
+        }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); padding: 5px 10px; font-size: 0.85em; color:white; border-radius:4px; border:none; cursor:pointer;}
+        .btn-edit { background: var(--edit); padding: 5px 10px; font-size: 0.85em; color: white; border-radius: 4px; border: none; cursor: pointer; font-weight: bold;}
+
+        table { width: 100%; border-collapse: collapse; background: white; margin-bottom: 25px; }
+        th, td { border: 1px solid var(--border); padding: 10px; text-align: left; font-size: 0.95rem; }
+        th { background: #1e3a8a; font-size: 0.9em; color: white; font-weight: bold; }
+
+        .presence-cell { text-align: center; vertical-align: middle; background: #fafafa; }
+        .check-item { width: 20px; height: 20px; cursor: pointer; transform: scale(1.2); }
+        .input-absent { width: 55px; padding: 5px; text-align: center; font-weight: bold; border: 1px solid var(--border); border-radius: 4px; }
+
+        .lot-block-remarque { background: #ffffff; border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 4px; margin-bottom: 15px; padding: 12px; }
+        .lot-remarque-title { font-weight: bold; color: var(--primary); margin-bottom: 8px; border-bottom: 1px dashed var(--border); padding-bottom: 4px; font-size: 1.1rem; }
+
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; display: inline-block; }
+        .badge-Urgent { background: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; }
+        .badge-Moyen { background: #fef3c7; color: var(--warning); border: 1px solid #fcd34d; }
+        .badge-Faible { background: #d1fae5; color: var(--success); border: 1px solid #6ee7b7; }
+        
+        .obs-img-preview { max-width: 100px; max-height: 70px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); cursor: pointer; margin-top: 5px; display: block; }
+        .annexe-item { page-break-inside: avoid; break-inside: avoid; margin-bottom: 30px; border-bottom: 1px dashed var(--border); padding-bottom: 20px; }
+        .annexe-img { max-width: 100%; max-height: 450px; object-fit: contain; border: 2px solid var(--border); border-radius: 6px; display: block; margin: 15px 0; }
+        .ref-tag { background: #0f172a; color: white; font-weight: bold; padding: 3px 8px; border-radius: 4px; font-size: 0.9em; }
+
+        .plan-workspace { display: flex; gap: 20px; height: 650px; }
+        .plan-sidebar { width: 260px; background: #f1f5f9; padding: 15px; border-radius: 6px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+        .plan-viewer-container { flex: 1; position: relative; background: #334155; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+        .plan-viewport { width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: grab; position: relative; }
+        #plan-render-wrapper { transform-origin: center center; position: relative; display: inline-block; }
+        #plan-img-target, #plan-canvas-target { max-width: 100%; max-height: 100%; display: block; user-select: none; }
+        .plan-pin { position: absolute; width: 24px; height: 24px; background: var(--danger); color: white; border-radius: 50%; border: 2px solid white; font-weight: bold; font-size: 11px; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); box-shadow: 0 2px 5px rgba(0,0,0,0.4); z-index: 50; }
+        .pagination-controls { display: flex; align-items: center; justify-content: space-between; background: #ffffff; padding: 8px; border-radius: 6px; border: 1px solid var(--border); }
+        .zoom-controls { display: flex; gap: 5px; }
+        .zoom-controls button { flex: 1; padding: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; border: 1px solid var(--border); border-radius: 4px; background: white; }
+        .zoom-controls button:hover { background: #f1f5f9; }
+
+        .no-print { display: block; }
+        .print-only { display: none; }
+
+        #autosave-toast {
+            position: fixed; bottom: 20px; right: 20px; background: #0f172a; color: #f8fafc;
+            padding: 10px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 500;
+            display: flex; align-items: center; gap: 8px; opacity: 0; transition: opacity 0.3s ease;
+            z-index: 10000; pointer-events: none;
+        }
+
+        @media print {
+            body {
+                background: white !important; color: #0f172a !important;
+                padding: 0 !important; margin: 0 !important; font-size: 10pt !important;
+                -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+            }
+            @page {
+                size: portrait; margin: 12mm;
+            }
+            .no-print, .tabs, #tab-entreprises, #tab-plans, #secteur-saisie, .btn-danger {
+                display: none !important;
+            }
+            .print-only { display: block !important; }
+            #tab-cr { display: block !important; }
+            
+            .card, .lot-block-remarque, .section-cadre, .annexe-item {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            
+            h2 {
+                color: #1e3a8a !important; font-size: 1.25rem !important;
+                border-bottom: 2px solid #1e3a8a !important; padding-bottom: 6px !important;
+                margin-top: 0 !important; margin-bottom: 18px !important;
+                text-transform: uppercase; letter-spacing: 0.5px;
+            }
+
+            input, select, textarea {
+                border: none !important; padding: 0 !important; background: transparent !important;
+                font-weight: bold !important; color: #0f172a !important; appearance: none;
+            }
+
+            table {
+                width: 100% !important; border-collapse: collapse !important; margin-bottom: 15px !important;
+                page-break-inside: auto !important;
+            }
+            tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+            th {
+                background: #1e3a8a !important; color: white !important; font-weight: bold !important;
+                text-transform: uppercase; font-size: 0.8rem !important; padding: 8px !important;
+                border: 1px solid #1e3a8a !important;
+            }
+            td {
+                border: 1px solid #cbd5e1 !important; padding: 8px !important; background: #ffffff !important;
+            }
+            tr:nth-child(even) td { background: #f8fafc !important; }
+
+            .print-checkbox {
+                font-size: 1.5rem !important; font-family: monospace !important; font-weight: bold !important; color: #1e3a8a !important;
+            }
+
+            .grid-intermediaire-juridique {
+                display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 20px !important; margin: 20px 0 !important;
+            }
+
+            .grid-header-2x2 {
+                display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 24px !important; margin-bottom: 30px !important;
+            }
+
+            .section-cadre {
+                border: 2px solid #1e3a8a !important; border-top: 8px solid #1e3a8a !important;
+                background: #f8fafc !important; padding: 20px !important; border-radius: 8px !important;
+                box-shadow: 2px 2px 5px rgba(0,0,0,0.05) !important;
+            }
+
+            .section-cadre h3 {
+                color: #1e3a8a !important; font-size: 1.2rem !important; border-bottom: 2px dashed #1e3a8a !important;
+                padding-bottom: 8px !important; margin-bottom: 15px !important; font-weight: 800 !important;
+            }
+
+            .section-cadre input { font-size: 1.1rem !important; }
+            .section-cadre label { font-size: 0.9rem !important; color: #334155 !important; font-weight: 700 !important; }
+
+            .section-cadre[style*="border-top-color"] {
+                border-color: #b45309 !important; border-top: 8px solid #ea580c !important; background: #fffdf5 !important;
+            }
+            .section-cadre[style*="border-top-color"] h3 {
+                color: #ea580c !important; border-bottom-color: #b45309 !important;
+            }
+
+            .banniere-prochain-rdv {
+                background: #ffedd5 !important; border: 4px double #ea580c !important; padding: 22px !important; margin: 20px 0 !important; border-radius: 8px !important;
+            }
+            .banniere-prochain-rdv h2 {
+                color: #7c2d12 !important; font-size: 1.6rem !important; border-bottom: none !important; margin: 0 !important; padding: 0 !important;
+            }
+
+            .print-page-1, .print-page-2, .print-page-3, .print-page-4 { 
+                page-break-before: auto !important; 
+                break-before: auto !important;
+            }
+            
+            .annexe-img { max-height: 350px !important; margin: 10px auto !important; }
+        }
+    </style>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';</script>
+</head>
+<body>
+
+<div id="autosave-toast">💾 Données sauvegardées...</div>
+
+<div class="container">
+
+    <div class="tabs no-print">
+        <button class="tab-btn active" id="btn-tab-entreprises" onclick="switchTab('tab-entreprises')">🏢 1. Configuration des Lots</button>
+        <button class="tab-btn" id="btn-tab-plans" onclick="switchTab('tab-plans')">🗺️ 2. Visionneuse de Plans</button>
+        <button class="tab-btn" id="btn-tab-cr" onclick="switchTab('tab-cr')" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;">📝 3. Compte Rendu de Chantier</button>
+    </div>
+
+    <div id="tab-entreprises" class="tab-content active">
+        <div id="form-bloc-saisie" class="no-print">
+            <div class="card" style="border-left: 4px solid var(--warning); background: #fffbeb;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="color: #b45309; margin-top: 0; margin-bottom: 0; border-bottom:none;">🗓️ Dates Stratégiques du Projet</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn" style="background: #0284c7;" onclick="alert('Données enregistrées (Simulation)')">💾 Enregistrer le fichier</button>
+                    </div>
+                </div>
+                <div class="grid-header-2x2" style="margin-top: 20px; margin-bottom: 0;">
+                    <div class="form-group">
+                        <label style="color: #b45309;">✍️ Date de Signature des Marchés *</label>
+                        <input type="date" id="proj-date-marche" value="2026-04-15">
+                    </div>
+                    <div class="form-group">
+                        <label style="color: #b45309;">🔑 Date de Réception de Chantier (Prévue) *</label>
+                        <input type="date" id="proj-date-reception" value="2026-08-30">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 id="form-entreprise-title" style="border-bottom:none;">Ajouter un Lot / Une Entreprise</h2>
+                <form id="form-entreprise" onsubmit="event.preventDefault(); alert('Lot enregistré');">
+                    <input type="hidden" id="ent-index" value="">
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Numéro de Lot *</label>
+                            <input type="text" id="ent-lot-num" placeholder="ex: 01" required="">
+                        </div>
+                        <div class="form-group">
+                            <label>Corps d'état *</label>
+                            <input type="text" id="ent-metier" placeholder="ex: Gros-Œuvre" required="">
+                        </div>
+                        <div class="form-group">
+                            <label>Nom de l'entreprise *</label>
+                            <input type="text" id="ent-nom" placeholder="ex: BatiFrance" required="">
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="submit" class="btn btn-success">Enregistrer le lot complet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-plans" class="tab-content">
+        <div class="card">
+            <h2 style="margin-top:0; color:var(--primary); border:none;">🗺️ Espace Plan &amp; Annotations</h2>
+            <div class="plan-workspace">
+                <div class="plan-sidebar">
+                    <div class="form-group">
+                        <label>📂 Charger un plan</label>
+                        <input type="file" id="plan-file-loader" accept="application/pdf, image/*">
+                    </div>
+                </div>
+                <div class="plan-viewer-container">
+                    <div class="plan-viewport">
+                        <div id="plan-render-wrapper">
+                            <img id="plan-img-target" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='500'><rect width='100%' height='100%' fill='%23334155'/><text x='50%' y='50%' font-family='sans-serif' font-size='18' fill='%2394a3b8' text-anchor='middle'>Aucun plan chargé</text></svg>">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-cr" class="tab-content">
+        <div class="print-page-1">
+            <div class="card" style="border:none; padding:0; margin-bottom:15px;">
+                <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
+                    <h1 style="margin:0; color: var(--primary); font-size: 1.8rem; font-weight: 800;">COMPTE RENDU DE CHANTIER</h1>
+                    <button class="btn btn-success no-print" onclick="window.print()">🖨️ Imprimer / Exporter en PDF</button>
+                </div>
+            </div>
+            
+            <div class="grid-header-2x2">
+                <div class="section-cadre">
+                    <h3>📐 Maître d'Œuvre</h3>
+                    <p>Cabinet d'Architecture Horizon</p>
+                </div>
+                <div class="section-cadre">
+                    <h3>👤 Maître d'Ouvrage</h3>
+                    <p>M. et Mme Robert Martin</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function switchTab(tabId) {
+        // 1. Masquer tous les contenus d'onglets
+        const contents = document.querySelectorAll('.tab-content');
+        contents.forEach(content => {
+            content.classList.remove('active');
+        });
+
+        // 2. Désactiver tous les boutons d'onglets
+        const buttons = document.querySelectorAll('.tab-btn');
+        buttons.forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // 3. Activer l'onglet ciblé
+        const targetContent = document.getElementById(tabId);
+        if (targetContent) {
+            targetContent.classList.add('active');
+        }
+
+        // 4. Mettre en valeur le bouton cliqué
+        // On cherche le bouton qui a l'attribut onclick contenant la chaîne tabId
+        buttons.forEach(btn => {
+            if (btn.getAttribute('onclick').includes(tabId)) {
+                btn.classList.add('active');
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
