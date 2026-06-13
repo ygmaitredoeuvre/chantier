@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application MOE - Gestion Multi-Chantiers</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #475569;
+            --accent: #dc2626;
+            --success: #16a34a;
+            --progress: #2563eb;
+            --bg: #f8fafc;
+            --text: #0f172a;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .no-print { display: block; }
+
+        .tabs {
+            display: flex;
+            background: #fff;
+            padding: 5px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            font-weight: 600;
+            color: var(--secondary);
+            cursor: pointer;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        h2, h3 { color: var(--primary); margin-top: 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;}
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+        label { font-weight: 500; margin-bottom: 5px; color: var(--secondary); }
+        input, select, textarea { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        
+        button {
+            background: var(--primary); color: white; border: none; padding: 12px 20px;
+            border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px;
+        }
+        button.btn-danger { background: var(--accent); }
+        button.btn-secondary { background: var(--secondary); }
+        button.btn-success { background: var(--success); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; vertical-align: top; }
+        th { background: #f1f5f9; color: var(--secondary); }
+
+        .inner-table { width: 100%; margin-top: 0; border: none; }
+        .inner-table td { border: none; border-bottom: 1px dashed #cbd5e1; padding: 8px; vertical-align: middle; }
+        .inner-table tr:last-child td { border-bottom: none; }
+
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; display: inline-block; }
+        .statut-retard { background-color: #fef2f2; color: var(--accent); }
+        .statut-termine { background-color: #f0fdf4; color: var(--success); }
+        .statut-encours { background-color: #eff6ff; color: var(--progress); }
+        .retard-input { border: 2px solid var(--accent) !important; background-color: #fef2f2; }
+
+        .delai-badge { padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 12px; color: white; display: inline-block; }
+        .delai-faible { background-color: #16a34a; }
+        .delai-moyen { background-color: #ea580c; }
+        .delai-critique { background-color: #dc2626; animation: pulse 2s infinite; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .lot-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .lot-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px;}
+        
+        .cr-lot-obs-block { border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 15px; background: #fff; overflow: hidden; }
+        .cr-lot-obs-header { background: #f1f5f9; padding: 10px 15px; font-weight: bold; border-bottom: 1px solid #cbd5e1; color: var(--primary); }
+        .cr-lot-obs-body { padding: 10px 15px; }
+
+        .obs-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 8px; }
+        .obs-reglee { background: #f0fdf4; border-color: #bbf7d0; }
+        .obs-texte-regle { text-decoration: line-through; color: #64748b; }
+
+        .active-project-card {
+            background: #eff6ff;
+            border: 2px solid var(--progress);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .cr-main-header {
+            text-align: center;
+            background: #000000 !important;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            color: #ffffff;
+        }
+        .cr-main-header h2 {
+            margin: 0 !important;
+            padding: 0 !important;
+            font-size: 26px !important;
+            font-weight: 800 !important;
+            color: #ffffff !important;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: none !important;
+        }
+
+        .cr-box-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .cr-box { border: 2px solid #000; padding: 15px; min-height: 120px; display: flex; flex-direction: column; justify-content: flex-start; }
+        
+        .cr-moe-layout {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+            height: 100%;
+        }
+        .cr-moe-texte {
+            flex: 1;
+            padding-right: 10px;
+        }
+        .cr-moe-logo-right {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cr-moe-logo-right img {
+            height: 70px;
+            width: auto;
+            display: block;
+            object-fit: contain;
+        }
+
+        .next-rdv { border: 3px solid var(--accent); background: #fef2f2; padding: 15px; text-align: center; font-size: 20px; font-weight: bold; margin: 20px 0; }
+        .legal-block { background: #f8fafc; border-left: 4px solid var(--primary); padding: 15px; margin: 15px 0; font-style: italic; }
+
+        #canvas-wrapper {
+            position: relative;
+            border: 2px dashed #cbd5e1;
+            margin-top: 10px;
+            background: #e2e8f0;
+            border-radius: 8px;
+            overflow: auto;
+            height: 600px;
+        }
+        canvas { display: block; background: #ffffff; cursor: crosshair; margin: 0 auto; }
+        .canvas-toolbar {
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .canvas-toolbar button { margin-top: 0; padding: 8px 12px; font-size: 14px; }
+        
+        .obs-images-container { display: flex; gap: 10px; margin-top: 8px; }
+        .obs-thumb-wrapper { display: flex; flex-direction: column; align-items: flex-start; font-size: 11px; font-weight: bold; color: var(--secondary); }
+        .obs-thumb { width: 140px; height: 105px; object-fit: cover; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; margin-top: 3px; }
+        
+        .annexe-photos-grid { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 20px; 
+            margin-top: 15px; 
+        }
+        .annexe-photo-block { 
+            width: calc(50% - 10px); 
+            background: #fff; 
+            border: 1px solid #cbd5e1; 
+            padding: 12px; 
+            border-radius: 8px; 
+            text-align: left; 
+            box-sizing: border-box;
+            page-break-inside: avoid; 
+        }
+        .annexe-photo-title { 
+            font-size: 14px; 
+            font-weight: bold; 
+            color: var(--primary); 
+            border-bottom: 1px solid #cbd5e1; 
+            padding-bottom: 5px; 
+            margin-bottom: 8px; 
+        }
+        .annexe-photo-img { 
+            width: 100%; 
+            height: 280px; 
+            object-fit: contain; 
+            background: #f8fafc; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 4px; 
+        }
+
+        .sync-box {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8);
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 18px;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .print-page-2, .print-page-3 {
+            page-break-before: unset;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 12mm 10mm 12mm 10mm;
+        }
+
+        @media print {
+            html, body {
+                width: 100% !important;
+                max-width: 100% !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            #pdf-preview {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: block !important;
+            }
+
+            .tabs, button, .no-print, input[type="file"], .canvas-toolbar, .sync-box { 
+                display: none !important; 
+            }
+            
+            .tab-content { display: none !important; }
+            #tab-cr { display: block !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; }
+            
+            .cr-main-header { 
+                background: #000000 !important; 
+                color: #ffffff !important; 
+                border-radius: 0 !important; 
+                padding: 15px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+                text-align: center !important;
+            }
+            
+            .cr-box-container {
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            .cr-box { 
+                border: 1px solid #000000 !important; 
+                background: transparent !important; 
+            }
+
+            input[type="text"], input[type="date"], input[type="time"], select {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: auto !important;
+                font-size: inherit !important;
+                font-family: inherit !important;
+                color: #000000 !important;
+                -webkit-appearance: none !important;
+                appearance: none !important;
+                display: inline-block !important;
+            }
+
+            input[type="checkbox"] { 
+                transform: scale(1.2); 
+                -webkit-appearance: checkbox !important;
+                appearance: checkbox !important;
+            }
+
+            .next-rdv { 
+                border: 2px solid #dc2626 !important; 
+                background: #fef2f2 !important; 
+                padding: 12px !important; 
+                width: 100% !important;
+                box-sizing: border-box !important;
+                display: block !important;
+                text-align: center !important;
+            }
+
+            .next-rdv input {
+                font-size: 20px !important;
+                font-weight: bold !important;
+                color: #000000 !important;
+                text-align: center !important;
+            }
+            
+            .cr-lot-obs-block { 
+                border: 1px solid #475569 !important; 
+                page-break-inside: avoid !important; 
+                margin-bottom: 15px !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .obs-reglee { opacity: 0.6; background: none !important; }
+            .delai-badge { color: #000000 !important; border: 1px solid #000000; background: none !important; }
+            .obs-thumb { max-width: 160px; height: auto !important; }
+            
+            .annexe-photos-grid {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 15px !important;
+                width: 100% !important;
+            }
+            .annexe-photo-block { 
+                width: calc(50% - 8px) !important; 
+                border: 1px solid #000000 !important; 
+                page-break-inside: avoid !important; 
+                box-sizing: border-box !important;
+            }
+            .annexe-photo-img { height: 220px !important; }
+
+            .print-page-2 {
+                page-break-before: always !important;
+                break-before: page !important;
+                margin-top: 20px !important;
+            }
+            .print-page-3 {
+                page-break-before: always !important;
+                break-before: page !important;
+                margin-top: 20px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tabs no-print">
+        <button class="tab-btn active" onclick="openTab('tab-chantier')">🏢 Gestion Multi-Projets</button>
+        <button class="tab-btn" onclick="openTab('tab-lots')">📋 Entreprises & Phases</button>
+        <button class="tab-btn" onclick="openTab('tab-plans')">🗺️ Plans & Annotations</button>
+        <button class="tab-btn" onclick="openTab('tab-cr')">📄 Génération du CR</button>
+    </div>
+
+    <div id="tab-chantier" class="tab-content active">
+        <h2>Gestion Multi-Projets & Chantiers</h2>
+
+        <div class="sync-box no-print">
+            <strong style="color: var(--primary);">💾 Sauvegarde & Synchronisation (OneDrive / iCloud)</strong>
+            <p style="margin: 5px 0 12px 0; font-size: 13px; color: var(--secondary);">
+                Pour basculer vos chantiers sur Mac, iPhone ou iPad, exportez le fichier et enregistrez-le dans votre Cloud. Ouvrez ensuite ce fichier sur votre autre appareil.
+            </p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button onclick="exporterBaseChantiers()" class="btn-success" style="margin-top:0; padding: 8px 15px; font-size: 14px;">📤 Exporter la base (.json)</button>
+                <button onclick="document.getElementById('import-file').click()" class="btn-secondary" style="margin-top:0; padding: 8px 15px; font-size: 14px;">📥 Importer une base</button>
+                <input type="file" id="import-file" accept=".json" onchange="importerBaseChantiers(event)" style="display: none;">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label style="font-size: 16px; font-weight: bold; color: var(--primary);">🔄 Sélectionner le chantier sur lequel travailler :</label>
+            <select id="select-chantier" onchange="changerChantierActif()" style="border: 2px solid var(--primary); font-weight: bold; color: var(--primary);">
+            </select>
+        </div>
+
+        <div class="active-project-card">
+            <span style="background: var(--progress); color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">Chantier Actif</span>
+            <h2 id="focus-nom" style="margin-top: 10px; margin-bottom: 5px; border: none; padding: 0; color: #1e3a8a;">-</h2>
+            <p style="margin: 5px 0;"><strong style="color: var(--secondary)">📍 Adresse du chantier :</strong> <span id="focus-adresse">-</span></p>
+            <div class="grid-2" style="margin-top: 10px; font-size: 14px; background: rgba(255,255,255,0.7); padding: 10px; border-radius: 8px;">
+                <div>💼 <b>Maître d'Ouvrage :</b> <span id="focus-mo">-</span></div>
+                <div>📅 <b>Fin prévue :</b> <span id="focus-fin">-</span></div>
+            </div>
+            <p style="margin: 8px 0 0 0; font-size: 13px; color: var(--secondary);"><strong style="color: var(--secondary)">🏠 Adresse de corresp. MO :</strong> <span id="focus-mo-adresse">-</span></p>
+            <button class="btn-secondary" style="width: 100%; margin-top: 15px;" onclick="chargerChantierPourEdition()">✏️ Modifier les informations de ce chantier</button>
+        </div>
+        
+        <h3 id="form-chantier-title">➕ Créer un Nouveau Projet de Chantier</h3>
+        <input type="hidden" id="edit-chantier-id" value="">
+        
+        <div class="form-group"><label>Nom du Chantier / Projet :</label><input type="text" id="c-nom" placeholder="Ex: Résidence Les Oliviers"></div>
+        <div class="form-group"><label>Adresse du Chantier (Lieu d'exécution des travaux) :</label><input type="text" id="c-adresse" placeholder="Ex: 12 rue de la Gare"></div>
+        
+        <div class="grid-2">
+            <div class="form-group"><label>Nom Maître d'Ouvrage (Client) :</label><input type="text" id="c-mo-nom" placeholder="Ex: M. Durand"></div>
+            <div class="form-group"><label>Email / Contact Maître d'Ouvrage :</label><input type="text" id="c-mo-mail" placeholder="Ex: m.durand@email.com"></div>
+        </div>
+        
+        <div class="form-group">
+            <label>Adresse Personnelle / Correspondance du Maître d'Ouvrage :</label>
+            <input type="text" id="c-mo-adresse" placeholder="Ex: 45 Avenue de la République, Paris (Laisser vide si identique au chantier)">
+        </div>
+        
+        <div class="grid-2">
+            <div class="grid-2">
+                <div class="form-group"><label>Date de signature :</label><input type="date" id="c-date-signature"></div>
+                <div class="form-group"><label>Date de réception :</label><input type="date" id="c-date-reception"></div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+            <button id="btn-save-chantier" onclick="creerOuModifierChantier()" class="btn-success" style="flex: 2;">➕ Créer et charger ce chantier</button>
+            <button id="btn-cancel-chantier" onclick="annulerEditionChantier()" class="btn-secondary" style="flex: 1; display: none;">Annuler</button>
+        </div>
+        
+        <hr style="margin: 30px 0; border: none; border-top: 2px dashed #cbd5e1;">
+        <button class="btn-danger" onclick="supprimerChantierActif()" style="width: 100%;">🗑️ Supprimer définitivement le chantier actif</button>
+    </div>
+
+    <div id="tab-lots" class="tab-content">
+        <h2>Gestion des Entreprises & des Phases d'Interventions</h2>
+        
+        <div style="background: #eff6ff; padding: 20px; border-radius: 12px; border: 1px solid #bfdbfe; margin-bottom: 30px;">
+            <h3 id="form-lot-title">➕ Ajouter un nouveau Lot / Entreprise</h3>
+            <input type="hidden" id="edit-lot-idx" value="">
+            <div class="grid-2">
+                <div class="form-group"><label>Intitulé du Lot :</label><input type="text" id="l-nom" placeholder="Ex: Lot 02 - Gros Œuvre"></div>
+                <div class="form-group"><label>Nom de l'Entreprise :</label><input type="text" id="l-entreprise" placeholder="Ex: BatiPro S.A."></div>
+            </div>
+            <div class="grid-3">
+                <div class="form-group"><label>Nom Prénom Responsable :</label><input type="text" id="l-responsable" placeholder="Ex: Jean Dupont"></div>
+                <div class="form-group"><label>Téléphone :</label><input type="tel" id="l-tel" placeholder="06 00 00 00 00"></div>
+                <div class="form-group"><label>Adresse Mail :</label><input type="email" id="l-mail" placeholder="j.dupont@entreprise.fr"></div>
+            </div>
+            <button id="btn-save-lot" onclick="enregistrerLot()" class="btn-success" style="width: 100%;">Enregistrer l'Entreprise</button>
+            <button id="btn-cancel-edit" onclick="annulerEditionLot()" class="btn-secondary" style="width: 100%; display:none; margin-top:5px;">Annuler la modification</button>
+        </div>
+
+        <h3>📋 Liste des Lots du chantier & planification des phases</h3>
+        <div id="liste-lots-gestion">
+        </div>
+    </div>
+
+    <div id="tab-plans" class="tab-content">
+        <h2>🗺️ Plans (PDF / Images), Repères & Navigation</h2>
+        
+        <div class="canvas-toolbar no-print">
+            <input type="file" id="file-plan" accept="image/*,application/pdf" onchange="loadPlanFile(event)">
+            
+            <button onclick="changePage(-1)" class="btn-secondary" style="padding: 6px 12px;">◀️ Page Précédente</button>
+            <span id="page-info" style="font-weight: bold; color: var(--primary); margin: 0 5px;">Page : 1 / 1</span>
+            <button onclick="changePage(1)" class="btn-secondary" style="padding: 6px 12px;">Page Suivante ▶️</button>
+
+            <button onclick="setMode('marker')" id="btn-mode-marker" class="btn-success" style="margin-left: 10px;">📍 Poser Repères</button>
+            <button onclick="setMode('pan')" id="btn-mode-pan" class="btn-secondary">✋ Bouger / Zoomer</button>
+            <button onclick="zoomCanvas(1.2)">🔍 +</button>
+            <button onclick="zoomCanvas(0.8)">🔍 -</button>
+            <button onclick="resetView()">🔄 Centrer</button>
+            <button onclick="clearMarkers()" style="background:#475569">🗑️ Effacer</button>
+            
+            <button onclick="capturerPlanPourObservation()" style="background:var(--success); font-weight:bold; margin-left:auto;">📷 CAPTURER POUR UNE OBS.</button>
+        </div>
+        
+        <div style="font-size:13px; color:var(--secondary); margin-bottom:8px;" class="no-print">
+            <i>Astuce : Vous pouvez utiliser les boutons fléchés pour naviguer dans les documents PDF de plusieurs pages.</i>
+        </div>
+
+        <div id="canvas-wrapper">
+            <div id="loading-plan-overlay" class="loading-overlay">⏳ Chargement et conversion du plan en cours...</div>
+            <canvas id="planCanvas"></canvas>
+        </div>
+    </div>
+
+    <div id="tab-cr" class="tab-content">
+        <div class="no-print" style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3>Saisie d'une Observation Terrain</h3>
+            <div class="grid-3">
+                <div class="form-group"><label>Lot Concerné :</label><select id="obs-lot"></select></div>
+                <div class="form-group"><label>Emplacement :</label><input type="text" id="obs-lieu" placeholder="Ex: Chambre 1, Etage 1"></div>
+                <div class="form-group"><label>Délai d'exécution :</label><select id="obs-delai"><option value="Faible">Faible (À suivre)</option><option value="Moyen">Moyen (Prochaine réunion)</option><option value="CRITIQUE">CRITIQUE (Immédiat)</option></select></div>
+            </div>
+            <div class="form-group"><label>Remarque / Note :</label><textarea id="obs-texte" rows="2"></textarea></div>
+            
+            <div class="grid-2" style="background:#fff; padding:12px; border-radius:6px; border:1px solid #cbd5e1; margin-top:10px;">
+                <div class="form-group">
+                    <label>📸 Ajouter une Photo du terrain :</label>
+                    <input type="file" id="obs-photo-file" accept="image/*">
+                </div>
+                <div>
+                    <label>🗺️ Capture de Plan liée :</label>
+                    <div id="preview-capture-statut" style="font-style:italic; font-size:13px; margin-top:10px; color:var(--secondary);">Aucune capture de plan en attente.</div>
+                    <img id="preview-capture-img" style="display:none; width:100%; height:80px; object-fit:contain; border:1px solid #cbd5e1; margin-top:5px;">
+                </div>
+            </div>
+
+            <button style="background: var(--success); width: 100%; margin-top:15px; font-size:16px;" onclick="ajouterObservation()">Ajouter l'observation au CR</button>
+        </div>
+
+        <button class="no-print" style="width: 100%; background: #2563eb; font-size: 18px; margin-bottom: 30px;" onclick="window.print()">🖨️ GÉNÉRER / EXPORTER LE COMPTE RENDU EN PDF</button>
+
+        <div id="pdf-preview">
+            <div class="cr-main-header">
+                <h2>Compte Rendu de Chantier</h2>
+            </div>
+
+            <div class="cr-box-container">
+                <div class="cr-box">
+                    <div class="cr-moe-layout">
+                        <div class="cr-moe-texte">
+                            <strong>👷 MAÎTRE D'ŒUVRE</strong><br>
+                            Yohann Guillouard - Maître d'Œuvre<br>
+                            Téléphone : 09.51.55.74.11 / 06.82.35.33.91<br>
+                            Email : contact@yg-maitredoeuvre.fr
+                        </div>
+                        <div class="cr-moe-logo-right">
+                            <img id="moe-cr-logo" src="logo.png" alt="" onerror="this.style.display='none';">
+                        </div>
+                    </div>
+                </div>
+                <div class="cr-box">
+                    <strong>🏡 MAÎTRE D'OUVRAGE</strong><br>
+                    <span id="cr-mo-nom" style="font-weight:bold;">-</span><br>
+                    <span id="cr-mo-mail">-</span><br>
+                    <span id="cr-mo-adresse" style="font-size: 13px; color: #334155;">-</span>
+                </div>
+            </div>
+            <div class="cr-box-container">
+                <div class="cr-box">
+                    <strong>📍 COORDONNÉES DU CHANTIER</strong><br>
+                    <span id="cr-c-nom" style="font-weight:bold;">-</span><br>
+                    <span id="cr-c-adresse">-</span>
+                </div>
+                <div class="cr-box">
+                    <strong>🔢 SUIVI COMPTE RENDU</strong><br>
+                    <b>Compte Rendu N° :</b> <input type="text" id="cr-num-actuel" value="01" style="width:50px; font-weight:bold;"><br>
+                    <b>Date dernier CR :</b> <input type="date" id="cr-date-dernier">
+                </div>
+            </div>
+
+            <div class="next-rdv">
+                📅 PROCHAIN RENDEZ-VOUS DE CHANTIER : 
+                Le <input type="date" id="cr-next-date"> 
+                à <input type="time" id="cr-next-heure">
+            </div>
+
+            <h3>1. MARCHÉ</h3>
+            <div class="legal-block">
+                Les entreprises ont procédé le <span id="cr-txt-signature" style="font-weight:bold; text-decoration:underline;">[Date Signature]</span> à la signature des pièces de leur marché pour une exécution de travaux. Les travaux se dérouleront du <span id="cr-txt-debut-lot" style="font-weight:bold; text-decoration:underline;">[Début Travaux]</span> au <span id="cr-txt-reception" style="font-weight:bold; text-decoration:underline;">[Date Réception]</span>, hors intempéries.
+            </div>
+
+            <h3>2. DÉLAI ET TENUE DU CHANTIER</h3>
+            <div class="legal-block">
+                Il est précisé aux entreprises que le délai global doit impérativement être respecté. Tout retard de livraison porterait préjudice au maître d'ouvrage. En conséquence, les pénalités pour le retard seront appliqués. Le planning détaillé de travaux fait partie intégrante des pièces marché. Chaque entreprise est tenue de respecter les dates et délais fixés pour ses interventions. Il est également indispensable de respecter toute consigne de sécurité et de prendre toute disposition nécessaire afin de perturber le moins possible la vie des occupants.
+            </div>
+
+            <h3>3. COORDONNÉES DES ENTREPRISES ET REGISTRE DES PRÉSENCES</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Lot / Entreprise</th>
+                        <th>Responsable</th>
+                        <th>Coordonnées</th>
+                        <th>Conv.</th>
+                        <th>Prés.</th>
+                        <th>Exc.</th>
+                        <th>Absences</th>
+                    </tr>
+                </thead>
+                <tbody id="cr-table-presences-corps"></tbody>
+            </table>
+
+            <h3 class="print-page-2">4. SUIVI DES PHASES D'INTERVENTION & ÉTAT D'AVANCEMENT</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Lot & Entreprise</th>
+                        <th style="width: 75%; padding: 0;">
+                            <table style="width: 100%; margin: 0; border: none; font-size: 14px;">
+                                <tr style="background: #e2e8f0;">
+                                    <td style="width: 30%; font-weight: bold; border: none; padding: 10px;">Phase d'intervention</td>
+                                    <td style="width: 15%; font-weight: bold; border: none; padding: 10px;">Début</td>
+                                    <td style="width: 15%; font-weight: bold; border: none; padding: 10px;">Fin Th.</td>
+                                    <td style="width: 25%; font-weight: bold; border: none; padding: 10px;">Fait le :</td>
+                                    <td style="width: 15%; font-weight: bold; border: none; padding: 10px;">Statut</td>
+                                </tr>
+                            </table>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="cr-table-phases-condense-corps"></tbody>
+            </table>
+
+            <h3 class="print-page-3">5. OBSERVATIONS DU MAÎTRE D'ŒUVRE</h3>
+            <div id="cr-observations-liste-par-lot">
+            </div>
+
+            <h3>6. ANNEXE PHOTOGRAPHIQUE</h3>
+            <div id="cr-annexe-photos-grand-format" class="annexe-photos-grid">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+        let chantiers = JSON.parse(localStorage.getItem('moe_chantiers')) || {};
+        let chantierActifId = localStorage.getItem('moe_chantier_actif') || "";
+        let capturePlanEnAttente = "";
+
+        if (Object.keys(chantiers).length === 0) {
+            chantiers["defaut"] = {
+                id: "defaut", nom: "Chantier Exemple Principal", adresse: "1 Route de Caen, Flers",
+                moNom: "M. Martin", moMail: "martin@mail.fr", moAdresse: "15 Rue de la Paix, Caen", dateSignature: "2026-01-10", dateReception: "2026-12-15",
+                lots: [], observations: []
+            };
+            chantierActifId = "defaut";
+            sauvegarder();
+        }
+
+        const wrapper = document.getElementById('canvas-wrapper');
+        const canvas = document.getElementById('planCanvas');
+        const ctx = canvas.getContext('2d');
+        const overlayChargement = document.getElementById('loading-plan-overlay');
+        
+        let planImg = new Image();
+        let planCharge = false;
+        let currentFile = null;
+        let pdfDoc = null;
+        let pageNum = 1;
+        let canvasMode = 'marker'; 
+        let zoomScale = 1.0;
+        let panX = 0;
+        let panY = 0;
+        let isPanning = false;
+        let startX, startY;
+        let reperesMarkers = []; 
+
+        function initCanvasSize() {
+            if(!canvas) return;
+            canvas.width = wrapper.clientWidth - 10;
+            canvas.height = wrapper.clientHeight - 10;
+            drawCanvas();
+        }
+        window.addEventListener('resize', initCanvasSize);
+
+        function drawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(panX, panY);
+            ctx.scale(zoomScale, zoomScale);
+
+            if (planCharge) {
+                ctx.drawImage(planImg, 0, 0);
+                reperesMarkers.forEach(m => {
+                    if (!m.page || m.page === pageNum) {
+                        const dynamicRadius = 16 / zoomScale; 
+                        const strokeWidth = 2 / zoomScale;
+                        const fontSize = Math.round(15 / zoomScale);
+
+                        ctx.beginPath();
+                        ctx.arc(m.x, m.y, dynamicRadius, 0, 2 * Math.PI);
+                        ctx.fillStyle = "red";
+                        ctx.fill();
+                        ctx.lineWidth = strokeWidth;
+                        ctx.strokeStyle = "white";
+                        ctx.stroke();
+
+                        ctx.fillStyle = "white";
+                        ctx.font = "bold " + fontSize + "px sans-serif";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(m.num, m.x, m.y);
+                    }
+                });
+            } else {
+                ctx.fillStyle = "#64748b";
+                ctx.font = "16px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText("Aucun plan chargé. Importez une Image ou un PDF.", canvas.width/(2*zoomScale), canvas.height/(2*zoomScale));
+            }
+            ctx.restore();
+        }
+
+        function setMode(mode) {
+            canvasMode = mode;
+            document.getElementById('btn-mode-marker').className = mode === 'marker' ? 'btn-success' : 'btn-secondary';
+            document.getElementById('btn-mode-pan').className = mode === 'pan' ? 'btn-success' : 'btn-secondary';
+        }
+
+        function zoomCanvas(factor) {
+            zoomScale *= factor;
+            if(zoomScale < 0.1) zoomScale = 0.1;
+            if(zoomScale > 8) zoomScale = 8;
+            drawCanvas();
+        }
+
+        function resetView() {
+            zoomScale = 1.0;
+            panX = 0;
+            panY = 0;
+            drawCanvas();
+        }
+
+        function clearMarkers() {
+            if(confirm("Effacer tous les repères de cette page ?")) {
+                reperesMarkers = reperesMarkers.filter(m => m.page !== pageNum);
+                drawCanvas();
+            }
+        }
+
+        function loadPlanFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            currentFile = file;
+            overlayChargement.style.display = "flex";
+
+            if (file.type === "application/pdf") {
+                const fileReader = new FileReader();
+                fileReader.onload = function() {
+                    const typedarray = new Uint8Array(this.result);
+                    pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                        pdfDoc = pdf;
+                        pageNum = 1;
+                        renderPdfPage(pageNum);
+                    }).catch(err => {
+                        overlayChargement.style.display = "none";
+                        alert("Erreur lors de la lecture du PDF : " + err.message);
+                    });
+                };
+                fileReader.readAsArrayBuffer(file);
+            } else {
+                pdfDoc = null;
+                pageNum = 1;
+                document.getElementById('page-info').innerText = "Page : 1 / 1";
+                const r = new FileReader();
+                r.onload = (ev) => {
+                    planImg = new Image();
+                    planImg.onload = () => {
+                        planCharge = true;
+                        overlayChargement.style.display = "none";
+                        resetView();
+                    };
+                    planImg.src = ev.target.result;
+                };
+                r.readAsDataURL(file);
+            }
+        }
+
+        function renderPdfPage(num) {
+            if (!pdfDoc) return;
+            overlayChargement.style.display = "flex";
+            
+            pdfDoc.getPage(num).then(function(page) {
+                const viewport = page.getViewport({ scale: 1.8 });
+                const dummyCanvas = document.createElement('canvas');
+                const dummyCtx = dummyCanvas.getContext('2d');
+                dummyCanvas.height = viewport.height;
+                dummyCanvas.width = viewport.width;
+
+                const renderContext = { canvasContext: dummyCtx, viewport: viewport };
+                
+                page.render(renderContext).promise.then(function() {
+                    planImg = new Image();
+                    planImg.onload = () => {
+                        planCharge = true;
+                        overlayChargement.style.display = "none";
+                        document.getElementById('page-info').innerText = `Page : ${num} / ${pdfDoc.numPages}`;
+                        resetView();
+                    };
+                    planImg.src = dummyCanvas.toDataURL();
+                });
+            });
+        }
+
+        function changePage(direction) {
+            if (!pdfDoc) return;
+            let targetPage = pageNum + direction;
+            if (targetPage >= 1 && targetPage <= pdfDoc.numPages) {
+                pageNum = targetPage;
+                renderPdfPage(pageNum);
+            }
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (canvasMode === 'pan' || e.button === 2) { 
+                isPanning = true;
+                startX = e.clientX - panX;
+                startY = e.clientY - panY;
+            } else if (canvasMode === 'marker' && planCharge) {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+                const imgX = (clickX - panX) / zoomScale;
+                const imgY = (clickY - panY) / zoomScale;
+
+                reperesMarkers.push({ x: imgX, y: imgY, num: reperesMarkers.length + 1, page: pageNum });
+                drawCanvas();
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isPanning) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            drawCanvas();
+        });
+
+        canvas.addEventListener('mouseup', () => isPanning = false);
+        canvas.addEventListener('contextmenu', e => e.preventDefault()); 
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if(e.deltaY < 0) zoomCanvas(1.1); else zoomCanvas(0.9);
+        }, { passive: false });
+
+        function capturerPlanPourObservation() {
+            if(!planCharge) return alert("Veuillez charger un plan avant d'effectuer une capture.");
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            tempCtx.drawImage(canvas, 0, 0);
+            
+            capturePlanEnAttente = tempCanvas.toDataURL("image/jpeg", 0.92);
+            alert("📷 Capture du plan effectuée !");
+            document.getElementById('preview-capture-statut').innerText = "✅ Une capture de plan est liée !";
+            document.getElementById('preview-capture-img').src = capturePlanEnAttente;
+            document.getElementById('preview-capture-img').style.display = "block";
+            openTab('tab-cr');
+        }
+
+        function sauvegarder() {
+            localStorage.setItem('moe_chantiers', JSON.stringify(chantiers));
+            localStorage.setItem('moe_chantier_actif', chantierActifId);
+        }
+
+        /* FONCTIONS DE SAUVEGARDE ET EXPORTATION CLOUD */
+        function exporterBaseChantiers() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(chantiers));
+            const downloadAnchor = document.createElement('a');
+            const dateStr = new Date().toISOString().split('T')[0];
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `suivi_chantiers_moe_${dateStr}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importerBaseChantiers(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const baseImportee = JSON.parse(e.target.result);
+                    if (Object.keys(baseImportee).length > 0) {
+                        if(confirm("Importer ce fichier ? Cela remplacera les données actuelles de cet appareil.")) {
+                            chantiers = baseImportee;
+                            chantierActifId = Object.keys(chantiers)[0];
+                            sauvegarder();
+                            refreshUI();
+                            alert("📈 Base de chantiers synchronisée avec succès sur cet appareil !");
+                        }
+                    }
+                } catch (err) {
+                    alert("Erreur lors de la lecture du fichier de sauvegarde. Assurez-vous qu'il s'agit d'un fichier .json valide.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            const btns = document.querySelectorAll('.tab-btn');
+            btns.forEach(btn => {
+                if(btn.getAttribute('onclick').includes(tabId)) btn.classList.add('active');
+            });
+            if(tabId === 'tab-plans') setTimeout(initCanvasSize, 50); 
+            refreshUI();
+        }
+
+        function refreshUI() {
+            const chantier = chantiers[chantierActifId];
+            if(!chantier) return;
+
+            const selectC = document.getElementById('select-chantier');
+            selectC.innerHTML = "";
+            Object.values(chantiers).forEach(c => {
+                selectC.innerHTML += `<option value="${c.id}" ${c.id === chantierActifId ? 'selected':''}>${c.nom}</option>`;
+            });
+
+            document.getElementById('focus-nom').innerText = chantier.nom;
+            document.getElementById('focus-adresse').innerText = chantier.adresse || "Non renseignée";
+            document.getElementById('focus-mo').innerText = `${chantier.moNom || '-'} (${chantier.moMail || '-'})`;
+            document.getElementById('focus-fin').innerText = chantier.dateReception ? formatDate(chantier.dateReception) : '-';
+            
+            const adrMOFormattee = chantier.moAdresse || chantier.adresse || "Identique à l'adresse du chantier";
+            document.getElementById('focus-mo-adresse').innerText = adrMOFormattee;
+
+            document.getElementById('cr-mo-nom').innerText = chantier.moNom || "-";
+            document.getElementById('cr-mo-mail').innerText = chantier.moMail || "-";
+            document.getElementById('cr-mo-adresse').innerText = chantier.moAdresse || chantier.adresse || "Identique à l'adresse du chantier";
+            
+            document.getElementById('cr-c-nom').innerText = chantier.nom || "-";
+            document.getElementById('cr-c-adresse').innerText = chantier.adresse || "-";
+            document.getElementById('cr-txt-signature').innerText = chantier.dateSignature ? formatDate(chantier.dateSignature) : '[Date';
+            document.getElementById('cr-txt-reception').innerText = chantier.dateReception ? formatDate(chantier.dateReception) : '[Date';
+
+            const selectObsLot = document.getElementById('obs-lot');
+            selectObsLot.innerHTML = "";
+            const corpsPresences = document.getElementById('cr-table-presences-corps');
+            corpsPresences.innerHTML = "";
+            const divGestionLots = document.getElementById('liste-lots-gestion');
+            divGestionLots.innerHTML = "";
+
+            if(chantier.lots.length === 0) {
+                divGestionLots.innerHTML = `<p style="font-style:italic; color:var(--secondary)">Aucune entreprise enregistrée.</p>`;
+            }
+
+            let premiereDatePhase = chantier.dateSignature;
+            const aujourdhui = new Date().toISOString().split('T')[0];
+
+            chantier.lots.forEach((lot, lotIdx) => {
+                selectObsLot.innerHTML += `<option value="${lot.nom}">${lot.nom}</option>`;
+                if(lot.phases) {
+                    lot.phases.forEach(p => { 
+                        if(p.dateDebut && (p.dateDebut < premiereDatePhase || premiereDatePhase === chantier.dateSignature)) premiereDatePhase = p.dateDebut; 
+                    });
+                }
+
+                corpsPresences.innerHTML += `
+                    <tr>
+                        <td><b>${lot.nom}</b><br><small>${lot.entreprise}</small></td>
+                        <td><b>${lot.responsable || '-'}</b></td>
+                        <td>📞 ${lot.tel}<br>✉️ ${lot.mail}</td>
+                        <td align="center"><input type="checkbox" ${lot.convoque ? 'checked':''} onchange="updatePresenceField(${lotIdx}, 'convoque', this.checked)"></td>
+                        <td align="center"><input type="checkbox" ${lot.statut === 'present' ? 'checked':''} onchange="updatePresenceField(${lotIdx}, 'statut', this.checked ? 'present' : '')"></td>
+                        <td align="center"><input type="checkbox" ${lot.statut === 'excuse' ? 'checked':''} onchange="updatePresenceField(${lotIdx}, 'statut', this.checked ? 'excuse' : '')"></td>
+                        <td><input type="number" value="${lot.absences}" style="width:50px;" oninput="updatePresenceField(${lotIdx}, 'absences', this.value)"> jours</td>
+                    </tr>
+                `;
+
+                let htmlPhasesLot = "";
+                if(lot.phases && lot.phases.length > 0) {
+                    lot.phases.forEach((p, pIdx) => {
+                        htmlPhasesLot += `
+                            <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:#fff; padding:10px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:8px;">
+                                <span style="flex:1; min-width:150px;">⚙️ <b>${p.nom}</b></span>
+                                <div><label style="font-size:11px; color:var(--secondary);">Début :</label><input type="date" value="${p.dateDebut}" onchange="modifierDatesPhaseDirecte(${lotIdx}, ${pIdx}, 'dateDebut', this.value)" style="padding:4px; font-size:13px;"></div>
+                                <div><label style="font-size:11px; color:var(--secondary);">Fin Th. :</label><input type="date" value="${p.dateFinTheo}" onchange="modifierDatesPhaseDirecte(${lotIdx}, ${pIdx}, 'dateFinTheo', this.value)" style="padding:4px; font-size:13px;"></div>
+                                <button class="btn-danger" style="padding:4px 8px; font-size:12px; margin:0;" onclick="supprimerPhase(${lotIdx}, ${pIdx})">Supprimer</button>
+                            </div>
+                        `;
+                    });
+                } else {
+                    htmlPhasesLot = `<p style="font-style:italic; font-size:13px; color:var(--secondary); margin:5px 0;">Aucune phase planifiée.</p>`;
+                }
+
+                divGestionLots.innerHTML += `
+                    <div class="lot-card">
+                        <div class="lot-card-header">
+                            <div><strong>${lot.nom}</strong> - <small>${lot.entreprise}</small></div>
+                            <div>
+                                <button class="btn-secondary" style="padding:4px 10px; font-size:13px;" onclick="chargerLotPourEdition(${lotIdx})">✏️ Modifier</button>
+                                <button class="btn-danger" style="padding:4px 10px; font-size:13px;" onclick="supprimerLot(${lotIdx})">🗑️ Supprimer</button>
+                            </div>
+                        </div>
+                        <div class="grid-3" style="background:#fff; border:1px dashed #2563eb; padding:10px; border-radius:6px; margin-bottom:10px;">
+                            <input type="text" id="add-p-nom-${lotIdx}" placeholder="Intitulé phase" style="padding:5px; font-size:14px;">
+                            <input type="date" id="add-p-debut-${lotIdx}" style="padding:5px; font-size:14px;">
+                            <input type="date" id="add-p-fin-${lotIdx}" style="padding:5px; font-size:14px;">
+                            <button class="btn-secondary" style="grid-column: span 3; padding:5px; margin:0; font-size:13px;" onclick="ajouterPhaseDirecte(${lotIdx})">➕ Planifier la phase</button>
+                        </div>
+                        <div><strong>Suivi des périodes :</strong></div>
+                        <div style="margin-top:5px;">${htmlPhasesLot}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('cr-txt-debut-lot').innerText = formatDate(premiereDatePhase);
+
+            const corpsPhasesCondense = document.getElementById('cr-table-phases-condense-corps');
+            corpsPhasesCondense.innerHTML = "";
+
+            chantier.lots.forEach((lot, lotIdx) => {
+                let htmlCellulePhases = `<table class="inner-table">`;
+                if(lot.phases && lot.phases.length > 0) {
+                    lot.phases.forEach((phase, phaseIdx) => {
+                        let texteStatut = "En cours"; let classeStyle = "statut-encours";
+                        if (phase.termine) { texteStatut = "Terminé"; classeStyle = "statut-termine"; }
+                        else if (phase.dateFinTheo && phase.dateFinTheo < aujourdhui) { texteStatut = "En retard"; classeStyle = "statut-retard"; }
+
+                        htmlCellulePhases += `
+                            <tr class="${classeStyle}">
+                                <td style="width: 30%; font-weight:500;">${phase.nom}</td>
+                                <td style="width: 15%;">${formatDate(phase.dateDebut)}</td>
+                                <td style="width: 15%;">${formatDate(phase.dateFinTheo)}</td>
+                                <td style="width: 25%;">
+                                    <input type="checkbox" ${phase.termine ? 'checked':''} onchange="updatePhaseStatus(${lotIdx}, ${phaseIdx}, 'termine', this.checked)"> Fait
+                                    <input type="date" value="${phase.dateFinReelle || ''}" class="${!phase.termine && phase.dateFinTheo < aujourdhui ? 'retard-input':''}" oninput="updatePhaseStatus(${lotIdx}, ${phaseIdx}, 'dateFinReelle', this.value)" style="padding:2px; font-size:11px; width:100px;">
+                                </td>
+                                <td style="width: 15%;"><span class="badge ${classeStyle}">${texteStatut}</span></td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    htmlCellulePhases += `<tr><td style="font-style:italic; color:var(--secondary); padding:10px;">Aucune phase planifiée.</td></tr>`;
+                }
+                htmlCellulePhases += `</table>`;
+
+                corpsPhasesCondense.innerHTML += `<tr><td><strong style="color:var(--primary); font-size:15px;">${lot.nom}</strong><br><small style="color:var(--secondary)">${lot.entreprise}</small></td><td style="padding: 0;">${htmlCellulePhases}</td></tr>`;
+            });
+
+            const divObsParLot = document.getElementById('cr-observations-liste-par-lot');
+            divObsParLot.innerHTML = "";
+            const divAnnexePhotos = document.getElementById('cr-annexe-photos-grand-format');
+            divAnnexePhotos.innerHTML = "";
+            let indexAnnexe = 1;
+
+            if(chantier.lots.length === 0) {
+                divObsParLot.innerHTML = `<p><i>Veuillez créer des entreprises pour générer les sections d'observations.</i></p>`;
+            } else {
+                chantier.lots.forEach((lot) => {
+                    const obsDuLot = chantier.observations.filter(o => o.lot === lot.nom);
+                    let htmlContenuObs = "";
+                    if(obsDuLot.length === 0) {
+                        htmlContenuObs = `<p style="color:var(--secondary); font-style:italic; margin:0; font-size:13px;">✅ Aucune observation.</p>`;
+                    } else {
+                        obsDuLot.forEach((obs) => {
+                            const globalIdx = chantier.observations.findIndex(o => o === obs);
+                            const estReglee = obs.resolue === true;
+                            let classeDelai = "delai-faible"; let valeurDelai = obs.delai || "Faible";
+                            if(valeurDelai === "Moyen") classeDelai = "delai-moyen";
+                            if(valeurDelai === "CRITIQUE") classeDelai = "delai-critique";
+
+                            let refPlanTxt = ""; let refTerrainTxt = ""; let htmlMiniatures = "";
+                            if(obs.planImg || obs.terrainImg) {
+                                htmlMiniatures += `<div class="obs-images-container">`;
+                                if(obs.planImg) {
+                                    refPlanTxt = `Photo #${indexAnnexe++}`;
+                                    htmlMiniatures += `<div class="obs-thumb-wrapper"><span>📍 ${refPlanTxt}</span><img src="${obs.planImg}" class="obs-thumb"></div>`;
+                                    divAnnexePhotos.innerHTML += `<div class="annexe-photo-block"><div class="annexe-photo-title">📸 ${refPlanTxt} (Plan)</div><img src="${obs.planImg}" class="annexe-photo-img"></div>`;
+                                }
+                                if(obs.terrainImg) {
+                                    refTerrainTxt = `Photo #${indexAnnexe++}`;
+                                    htmlMiniatures += `<div class="obs-thumb-wrapper"><span>📸 ${refTerrainTxt}</span><img src="${obs.terrainImg}" class="obs-thumb"></div>`;
+                                    divAnnexePhotos.innerHTML += `<div class="annexe-photo-block"><div class="annexe-photo-title">📸 ${refTerrainTxt} (Terrain)</div><img src="${obs.terrainImg}" class="annexe-photo-img"></div>`;
+                                }
+                                htmlMiniatures += `</div>`;
+                            }
+                            let referencesBadge = refPlanTxt || refTerrainTxt ? ` | 📁 <b>Réf :</b> <span style="color:var(--primary); font-weight:bold;">${[refPlanTxt, refTerrainTxt].filter(Boolean).join(' & ')}</span>` : "";
+
+                            htmlContenuObs += `
+                                <div class="obs-item ${estReglee ? 'obs-reglee' : ''}">
+                                    <button class="no-print btn-danger" style="padding:2px 6px; font-size:11px; float:right;" onclick="supprimerObservation(${globalIdx})">Supprimer</button>
+                                    <div style="margin-bottom: 5px;">
+                                        <input type="checkbox" ${estReglee ? 'checked' : ''} onchange="updateObservationStatus(${globalIdx}, 'resolue', this.checked)"> <strong>Observation Levée</strong> 
+                                        ${estReglee ? ` le <input type="date" value="${obs.dateResolution || ''}" oninput="updateObservationStatus(${globalIdx}, 'dateResolution', this.value)" style="padding:2px; font-size:12px;">` : ''}
+                                    </div>
+                                    <span class="${estReglee ? 'obs-texte-regle' : ''}">📅 <b>Le :</b> ${formatDate(obs.dateEmission)} | 📍 <b>Lieu :</b> ${obs.lieu || '-'} | ⏱️ <b>Délai :</b> <span class="delai-badge ${classeDelai}">${valeurDelai}</span>${referencesBadge}<br>👉 ${obs.texte}</span>
+                                    ${htmlMiniatures}
+                                </div>
+                            `;
+                        });
+                    }
+                    divObsParLot.innerHTML += `<div class="cr-lot-obs-block"><div class="cr-lot-obs-header">📋 ${lot.nom} — ${lot.entreprise}</div><div class="cr-lot-obs-body">${htmlContenuObs}</div></div>`;
+                });
+            }
+            if (divAnnexePhotos.innerHTML === "") divAnnexePhotos.innerHTML = `<p style="font-style:italic; color:var(--secondary); margin:0;">Aucun visuel rattaché.</p>`;
+        }
+
+        function chargerChantierPourEdition() {
+            const chantier = chantiers[chantierActifId];
+            document.getElementById('edit-chantier-id').value = chantier.id;
+            document.getElementById('c-nom').value = chantier.nom;
+            document.getElementById('c-adresse').value = chantier.adresse || "";
+            document.getElementById('c-mo-nom').value = chantier.moNom || "";
+            document.getElementById('c-mo-mail').value = chantier.moMail || "";
+            document.getElementById('c-mo-adresse').value = chantier.moAdresse || ""; 
+            document.getElementById('c-date-signature').value = chantier.dateSignature || "";
+            document.getElementById('c-date-reception').value = chantier.dateReception || "";
+            document.getElementById('form-chantier-title').innerText = "✏️ Modifier le chantier : " + chantier.nom;
+            document.getElementById('btn-save-chantier').innerText = "💾 Sauvegarder";
+            document.getElementById('btn-cancel-chantier').style.display = "inline-block";
+        }
+
+        function annulerEditionChantier() {
+            document.getElementById('edit-chantier-id').value = "";
+            document.getElementById('c-nom').value = ""; 
+            document.getElementById('c-adresse').value = ""; 
+            document.getElementById('c-mo-nom').value = ""; 
+            document.getElementById('c-mo-mail').value = ""; 
+            document.getElementById('c-mo-adresse').value = ""; 
+            document.getElementById('c-date-signature').value = ""; 
+            document.getElementById('c-date-reception').value = "";
+            document.getElementById('form-chantier-title').innerText = "➕ Créer un Nouveau Projet de Chantier";
+            document.getElementById('btn-save-chantier').innerText = "➕ Créer et charger ce chantier";
+            document.getElementById('btn-cancel-chantier').style.display = "none";
+        }
+
+        function creerOuModifierChantier() {
+            const nom = document.getElementById('c-nom').value; 
+            if(!nom) return alert("Indiquer au moins le nom du projet.");
+            const editId = document.getElementById('edit-chantier-id').value;
+
+            if(editId !== "") {
+                chantiers[editId].nom = nom; 
+                chantiers[editId].adresse = document.getElementById('c-adresse').value; 
+                chantiers[editId].moNom = document.getElementById('c-mo-nom').value; 
+                chantiers[editId].moMail = document.getElementById('c-mo-mail').value; 
+                chantiers[editId].moAdresse = document.getElementById('c-mo-adresse').value; 
+                chantiers[editId].dateSignature = document.getElementById('c-date-signature').value; 
+                chantiers[editId].dateReception = document.getElementById('c-date-reception').value;
+            } else {
+                const id = "c_" + Date.now();
+                chantiers[id] = { 
+                    id: id, 
+                    nom: nom, 
+                    adresse: document.getElementById('c-adresse').value, 
+                    moNom: document.getElementById('c-mo-nom').value, 
+                    moMail: document.getElementById('c-mo-mail').value, 
+                    moAdresse: document.getElementById('c-mo-adresse').value, 
+                    dateSignature: document.getElementById('c-date-signature').value, 
+                    dateReception: document.getElementById('c-date-reception').value, 
+                    lots: [], 
+                    observations: [] 
+                };
+                chantierActifId = id;
+            }
+            annulerEditionChantier(); sauvegarder(); refreshUI();
+        }
+
+        function supprimerChantierActif() {
+            if(confirm("Supprimer ce projet ?")) {
+                delete chantiers[chantierActifId];
+                chantierActifId = Object.keys(chantiers)[0] || "";
+                if(chantierActifId === "") { chantiers["defaut"] = { id: "defaut", nom: "Nouveau Chantier", lots: [], observations: [] }; chantierActifId = "defaut"; }
+                sauvegarder(); refreshUI();
+            }
+        }
+
+        function ajouterObservation() {
+            const texte = document.getElementById('obs-texte').value; if(!texte) return alert("Saisir une description.");
+            const dateAujourdhui = new Date().toISOString().split('T')[0];
+            const fileInput = document.getElementById('obs-photo-file');
+
+            const finaliserEnregistrement = (base64PhotoTerrain) => {
+                try {
+                    chantiers[chantierActifId].observations.push({ lot: document.getElementById('obs-lot').value, lieu: document.getElementById('obs-lieu').value, delai: document.getElementById('obs-delai').value, texte: texte, resolue: false, dateResolution: "", dateEmission: dateAujourdhui, planImg: capturePlanEnAttente || "", terrainImg: base64PhotoTerrain || "" });
+                    sauvegarder(); capturePlanEnAttente = "";
+                    document.getElementById('obs-texte').value = ""; document.getElementById('obs-lieu').value = ""; fileInput.value = "";
+                    document.getElementById('preview-capture-statut').innerText = "Aucune capture de plan en attente.";
+                    document.getElementById('preview-capture-img').style.display = "none";
+                    refreshUI(); alert("Observation ajoutée !");
+                } catch (error) {
+                    alert("🚨 Photo trop lourde pour le stockage local.");
+                }
+            };
+
+            if(fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvasComp = document.createElement('canvas'); const ctxComp = canvasComp.getContext('2d');
+                        const MAX_WIDTH = 800; const MAX_HEIGHT = 600; let width = img.width; let height = img.height;
+                        if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
+                        else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+                        canvasComp.width = width; canvasComp.height = height;
+                        ctxComp.drawImage(img, 0, 0, width, height);
+                        finaliserEnregistrement(canvasComp.toDataURL("image/jpeg", 0.6));
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else finaliserEnregistrement("");
+        }
+
+        function updateObservationStatus(idx, champ, valeur) {
+            chantiers[chantierActifId].observations[idx][champ] = valeur;
+            if (champ === 'resolue' && valeur === true && !chantiers[chantierActifId].observations[idx].dateResolution) {
+                chantiers[chantierActifId].observations[idx].dateResolution = new Date().toISOString().split('T')[0];
+            }
+            sauvegarder(); refreshUI();
+        }
+
+        function supprimerObservation(idx) { if(confirm("Supprimer ?")) { chantiers[chantierActifId].observations.splice(idx, 1); sauvegarder(); refreshUI(); } }
+
+        function enregistrerLot() {
+            const nomLot = document.getElementById('l-nom').value; const FlyEntreprise = document.getElementById('l-entreprise').value; const editIdx = document.getElementById('edit-lot-idx').value;
+            if(!nomLot || !FlyEntreprise) return alert("Champs obligatoires.");
+
+            if(editIdx !== "") {
+                let l = chantiers[chantierActifId].lots[editIdx]; l.nom = nomLot; l.entreprise = FlyEntreprise; l.responsable = document.getElementById('l-responsable').value; l.tel = document.getElementById('l-tel').value; l.mail = document.getElementById('l-mail').value;
+            } else {
+                chantiers[chantierActifId].lots.push({ nom: nomLot, entreprise: FlyEntreprise, responsable: document.getElementById('l-responsable').value, tel: document.getElementById('l-tel').value, mail: document.getElementById('l-mail').value, phases: [], convoque: true, statut: 'present', absences: 0 });
+            }
+            annulerEditionLot(); sauvegarder(); refreshUI();
+        }
+
+        function chargerLotPourEdition(idx) {
+            const lot = chantiers[chantierActifId].lots[idx];
+            document.getElementById('edit-lot-idx').value = idx; document.getElementById('l-nom').value = lot.nom; document.getElementById('l-entreprise').value = lot.entreprise; document.getElementById('l-responsable').value = lot.responsable || ""; document.getElementById('l-tel').value = lot.tel || ""; document.getElementById('l-mail').value = lot.mail || "";
+            document.getElementById('form-lot-title').innerText = "✏️ Modifier : " + lot.nom;
+            document.getElementById('btn-cancel-edit').style.display = "block";
+        }
+
+        function annulerEditionLot() {
+            document.getElementById('edit-lot-idx').value = ""; document.getElementById('l-nom').value = ""; document.getElementById('l-entreprise').value = ""; document.getElementById('l-responsable').value = ""; document.getElementById('l-tel').value = ""; document.getElementById('l-mail').value = "";
+            document.getElementById('form-lot-title').innerText = "➕ Ajouter un nouveau Lot";
+            document.getElementById('btn-cancel-edit').style.display = "none";
+        }
+
+        function ajouterPhaseDirecte(lotIdx) {
+            const nom = document.getElementById(`add-p-nom-${lotIdx}`).value; const debut = document.getElementById(`add-p-debut-${lotIdx}`).value; const fin = document.getElementById(`add-p-fin-${lotIdx}`).value;
+            if(!nom || !debut || !fin) return alert("Remplir tous les champs.");
+            chantiers[chantierActifId].lots[lotIdx].phases.push({ nom: nom, dateDebut: debut, dateFinTheo: fin, termine: false, dateFinReelle: "" });
+            document.getElementById(`add-p-nom-${lotIdx}`).value = ""; document.getElementById(`add-p-debut-${lotIdx}`).value = ""; document.getElementById(`add-p-fin-${lotIdx}`).value = "";
+            sauvegarder(); refreshUI();
+        }
+
+        function modifierDatesPhaseDirecte(lotIdx, phaseIdx, champ, nouvelleValeur) { chantiers[chantierActifId].lots[lotIdx].phases[phaseIdx][champ] = nouvelleValeur; sauvegarder(); refreshUI(); }
+        function supprimerPhase(lotIdx, phaseIdx) { if(confirm("Supprimer phase ?")) { chantiers[chantierActifId].lots[lotIdx].phases.splice(phaseIdx, 1); sauvegarder(); refreshUI(); } }
+        function supprimerLot(idx) { if(confirm("Supprimer lot ?")) { chantiers[chantierActifId].lots.splice(idx, 1); sauvegarder(); refreshUI(); } }
+        function updatePhaseStatus(lotIdx, phaseIdx, champ, valeur) {
+            chantiers[chantierActifId].lots[lotIdx].phases[phaseIdx][champ] = valeur;
+            if (champ === 'termine' && valeur === true && !chantiers[chantierActifId].lots[lotIdx].phases[phaseIdx].dateFinReelle) {
+                chantiers[chantierActifId].lots[lotIdx].phases[phaseIdx].dateFinReelle = new Date().toISOString().split('T')[0];
+            }
+            sauvegarder(); refreshUI();
+        }
+
+        function updatePresenceField(lotIdx, champ, valeur) { chantiers[chantierActifId].lots[lotIdx][champ] = valeur; sauvegarder(); }
+        function changerChantierActif() { chantierActifId = document.getElementById('select-chantier').value; annulerEditionChantier(); sauvegarder(); refreshUI(); }
+        function formatDate(dStr) { if(!dStr) return "-"; const d = dStr.split('-'); return `${d[2]}/${d[1]}/${d[0]}`; }
+
+        setTimeout(initCanvasSize, 100);
+        refreshUI();
+    </script>
+</body>
+</html>
